@@ -1,5 +1,5 @@
 const DATA_URL = "data/uofr-bangla.json";
-const API_BASE = window.UR_BANGLA_API_BASE || "http://127.0.0.1:9007";
+const API_BASE = window.UR_BANGLA_API_BASE || "https://jerin-api.flyai.online/x006";
 
 const state = {
   settings: {},
@@ -12,6 +12,8 @@ const form = document.querySelector("#experienceForm");
 const formStatus = document.querySelector("#formStatus");
 const subscribeForm = document.querySelector("#subscribeForm");
 const subscribeStatus = document.querySelector("#subscribeStatus");
+const navToggle = document.querySelector(".nav-toggle");
+const siteNav = document.querySelector("#siteNav");
 
 function formatDate(value) {
   const date = new Date(`${value}T12:00:00`);
@@ -62,6 +64,17 @@ function renderExperience(item) {
     </article>
   `;
 }
+
+navToggle?.addEventListener("click", () => {
+  const isOpen = siteNav.classList.toggle("is-open");
+  navToggle.setAttribute("aria-expanded", String(isOpen));
+});
+
+siteNav?.addEventListener("click", (event) => {
+  if (!event.target.closest("a")) return;
+  siteNav.classList.remove("is-open");
+  navToggle?.setAttribute("aria-expanded", "false");
+});
 
 async function loadApprovedPosts() {
   const response = await fetch(`${API_BASE}/api/posts?status=approved`);

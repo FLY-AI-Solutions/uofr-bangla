@@ -121,6 +121,25 @@ code {
   gap: 8px;
 }
 
+.nav-toggle {
+  display: none;
+  width: 44px;
+  height: 40px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  padding: 9px;
+}
+
+.nav-toggle span {
+  display: block;
+  height: 2px;
+  margin: 5px 0;
+  border-radius: 999px;
+  background: #fff;
+}
+
 .nav a {
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
@@ -302,6 +321,13 @@ h3 {
 .intro-band p {
   margin: 0 auto;
   max-width: 1180px;
+}
+
+.intro-band a {
+  color: #101918;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
 }
 
 .section-shell,
@@ -565,6 +591,7 @@ h3 {
   border-radius: 8px;
   background: #fff;
   padding: 16px;
+  overflow-wrap: anywhere;
 }
 
 .experience-card p {
@@ -902,11 +929,48 @@ legend {
 
 @media (max-width: 640px) {
   .topbar {
-    position: static;
+    position: sticky;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 44px;
+    gap: 10px;
+    padding: 10px 14px;
   }
 
   .brand {
     min-width: 0;
+  }
+
+  .brand-mark {
+    width: 48px;
+    height: 40px;
+  }
+
+  .brand small {
+    display: none;
+  }
+
+  .nav-toggle {
+    display: block;
+  }
+
+  .nav {
+    display: none;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .nav.is-open {
+    display: grid;
+  }
+
+  .nav a {
+    display: flex;
+    justify-content: center;
+    min-height: 38px;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 0.82rem;
   }
 
   .hero {
@@ -934,6 +998,40 @@ legend {
 
   .section-photo {
     min-height: 260px;
+  }
+
+  .section-body {
+    padding: 18px;
+  }
+
+  .section-body h3 {
+    font-size: 1.55rem;
+  }
+
+  .prompt-list {
+    display: none;
+  }
+
+  .experiences {
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+    scrollbar-width: thin;
+  }
+
+  .experience-card {
+    padding: 12px;
+  }
+
+  .experience-card p {
+    font-size: 0.92rem;
+    line-height: 1.45;
+  }
+
+  .experience-meta {
+    display: grid;
+    gap: 2px;
+    font-size: 0.84rem;
   }
 
   .sponsor {

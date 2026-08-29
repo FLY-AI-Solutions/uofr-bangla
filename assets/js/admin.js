@@ -1,4 +1,4 @@
-const API_BASE = window.UR_BANGLA_API_BASE || "http://127.0.0.1:9007";
+const API_BASE = window.UR_BANGLA_API_BASE || "https://jerin-api.flyai.online/x006";
 const tokenForm = document.querySelector("#adminTokenForm");
 const loginSection = document.querySelector("#adminLogin");
 const dashboard = document.querySelector("#adminDashboard");

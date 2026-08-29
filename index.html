@@ -28,11 +28,17 @@
           <small>Survival notes from the community</small>
         </span>
       </a>
-      <nav class="nav" aria-label="Page sections">
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="siteNav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="nav" id="siteNav" aria-label="Page sections">
         <a href="#sections">Sections</a>
         <a href="#bangladeshi-faculty">Faculty</a>
         <a href="#immigration-advice">Immigration</a>
         <a href="#share">Share</a>
+        <a href="#subscribe">Updates</a>
       </nav>
     </header>
 
@@ -60,8 +66,8 @@
 
       <section class="intro-band">
         <p>
-          Every listing below comes from <code>data/uofr-bangla.json</code>. New submissions can be sent to Google Sheets
-          through a published Apps Script endpoint.
+          Sponsored by <a href="https://flyai.online" target="_blank" rel="noopener">FLY AI Solutions LLC</a>,
+          supporting community tools for students, founders, and researchers.
         </p>
       </section>
 
@@ -135,7 +141,7 @@
           <h2 id="subscribe-title">Get new approved posts by email.</h2>
           <p>
             Subscribe for free and receive updates when new community experiences are approved. Email subjects follow the
-            section name, like <strong>UR BSA: Restaurants</strong>.
+            section name, like <strong>UR BSA: Restaurants</strong>. Every email includes an unsubscribe link.
           </p>
         </div>
         <form class="subscribe-form" id="subscribeForm">
