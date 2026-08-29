@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UofR Bangla | Community Field Guide</title>
+    <meta
+      name="description"
+      content="A community-powered one-page guide for Bangladeshi students and friends at the University of Rochester."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/uofr-bangla.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="UofR Bangla home">
+        <span class="brand-mark">
+          <strong>UR</strong>
+          <em>বাংলা</em>
+        </span>
+        <span>
+          <strong>UofR Bangla</strong>
+          <small>Survival notes from the community</small>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Page sections">
+        <a href="#sections">Sections</a>
+        <a href="#bangladeshi-faculty">Faculty</a>
+        <a href="#immigration-advice">Immigration</a>
+        <a href="#share">Share</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero-copy">
+          <p class="eyebrow">রচেস্টারে নতুন?</p>
+          <h1 id="page-title">A living Bangla guide to Rochester, UR, and the first hard questions.</h1>
+          <p>
+            Read practical notes from students, alumni, and friends. Add your own experience anonymously or with your name
+            so the next person arrives with fewer unknowns.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="#share">Post an experience</a>
+            <a class="button secondary" href="#subscribe">Free updates</a>
+            <a class="button secondary" href="#sections">Browse advice</a>
+          </div>
+        </div>
+        <div class="hero-gallery" aria-label="UofR Bangla community photos">
+          <img src="assets/images/group_photo.JPEG" alt="Bangladeshi student community group photo" />
+          <img src="assets/images/pohela_boishak_food.JPEG" alt="Pohela Boishakh food table" />
+          <img src="assets/images/working_together.JPEG" alt="Students working together" />
+        </div>
+      </section>
+
+      <section class="intro-band">
+        <p>
+          Every listing below comes from <code>data/uofr-bangla.json</code>. New submissions can be sent to Google Sheets
+          through a published Apps Script endpoint.
+        </p>
+      </section>
+
+      <section class="section-shell" id="sections">
+        <div class="section-heading">
+          <p class="eyebrow">Community guide</p>
+          <h2>Choose the question you are carrying today.</h2>
+        </div>
+        <div class="section-grid" id="sectionGrid" aria-live="polite"></div>
+      </section>
+
+      <section class="share-panel" id="share" aria-labelledby="share-title">
+        <div>
+          <p class="eyebrow">Add your note</p>
+          <h2 id="share-title">Post anonymously or credibly.</h2>
+          <p>
+            Pick a section, write what you wish someone had told you, and choose whether your name appears. Submissions
+            are also shown locally after sending.
+          </p>
+        </div>
+
+        <form class="experience-form" id="experienceForm">
+          <label>
+            Section
+            <select name="section" id="sectionSelect" required></select>
+          </label>
+
+          <div class="form-row">
+            <label>
+              Name
+              <input name="name" type="text" maxlength="80" placeholder="Your name or organization" />
+            </label>
+            <label>
+              Date
+              <input name="date" type="date" required />
+            </label>
+          </div>
+
+          <fieldset>
+            <legend>Posting style</legend>
+            <label class="radio-card">
+              <input type="radio" name="visibility" value="anonymous" checked />
+              <span>Anonymous</span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="visibility" value="credible" />
+              <span>Credible</span>
+            </label>
+          </fieldset>
+
+          <label>
+            Experience
+            <textarea
+              name="experience"
+              rows="6"
+              minlength="20"
+              maxlength="1200"
+              placeholder="Share specific, kind, useful advice..."
+              required
+            ></textarea>
+          </label>
+
+          <button class="button primary" type="submit">Submit experience</button>
+          <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="subscribe-panel" id="subscribe" aria-labelledby="subscribe-title">
+        <div>
+          <p class="eyebrow">Free subscription</p>
+          <h2 id="subscribe-title">Get new approved posts by email.</h2>
+          <p>
+            Subscribe for free and receive updates when new community experiences are approved. Email subjects follow the
+            section name, like <strong>UR BSA: Restaurants</strong>.
+          </p>
+        </div>
+        <form class="subscribe-form" id="subscribeForm">
+          <label>
+            Email
+            <input name="email" type="email" maxlength="180" placeholder="you@example.com" required />
+          </label>
+          <label>
+            Name
+            <input name="name" type="text" maxlength="100" placeholder="Optional" />
+          </label>
+          <button class="button primary" type="submit">Subscribe free</button>
+          <p class="form-status" id="subscribeStatus" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Built for UofR Bangla and the Bangladesh Students Association community.</p>
+      <a class="sponsor" href="https://flyai.online" target="_blank" rel="noopener">
+        <span>Sponsored by</span>
+        <img src="assets/images/fly-ai-short-logo.png" alt="FLY AI Solutions LLC" />
+        <strong>FLY AI Solutions LLC</strong>
+        <small>2026</small>
+      </a>
+    </footer>
+
+    <script>
+      window.UR_BANGLA_API_BASE = window.UR_BANGLA_API_BASE || "http://127.0.0.1:9007";
+    </script>
+    <script src="assets/js/uofr-bangla.js" defer></script>
+  </body>
+</html>

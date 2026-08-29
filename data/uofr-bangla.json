@@ -1,0 +1,186 @@
+{
+  "settings": {
+    "googleSheetsEndpoint": "",
+    "financeReferralUrl": "https://example.com/finance-referral",
+    "creditCardReferralUrl": "https://example.com/credit-card-referral",
+    "immigrationResourceUrl": "https://immigenius.us"
+  },
+  "sections": [
+    {
+      "id": "surviving-rochester",
+      "title": "Surviving Rochester: The Winter & Summer",
+      "kicker": "Weather, layers, buses, and sanity",
+      "image": "assets/images/surviving.JPEG",
+      "summary": "Rochester weather has range. This section collects advice on winter gear, summer routines, groceries, transit, housing, and the small habits that make the city easier.",
+      "prompts": ["What winter gear was actually worth buying?", "How do you handle campus movement in snow?", "What summer spots helped you breathe?"],
+      "experiences": [
+        {
+          "name": "Anonymous",
+          "date": "2026-08-15",
+          "visibility": "anonymous",
+          "experience": "Buy waterproof boots before the first real snow, not after. A warm coat matters, but gloves, wool socks, and a hat make the daily walk feel much less dramatic."
+        }
+      ]
+    },
+    {
+      "id": "bangla-taste-trail",
+      "title": "Bangla Taste Trail",
+      "kicker": "Restaurants and comfort food",
+      "image": "assets/images/pohela_boishak_food.JPEG",
+      "summary": "A running list of restaurants, grocery finds, halal options, chai spots, and homesick-food discoveries for Bangla tastebuds around Rochester.",
+      "prompts": ["Where did you find a familiar flavor?", "What should new students order first?", "Which grocery items are easy to miss?"],
+      "experiences": [
+        {
+          "name": "BSA Food Team",
+          "date": "2026-08-10",
+          "visibility": "credible",
+          "experience": "Keep a shared map of halal restaurants, South Asian groceries, and late-night options. Add notes about spice level, price, and whether it is easy to reach without a car."
+        }
+      ]
+    },
+    {
+      "id": "finance-advice",
+      "title": "Finance Advice",
+      "kicker": "Credit, income rules, and careful starts",
+      "image": "assets/images/finance-advice.jpg",
+      "summary": "You can own a business and stocks, but you cannot work for them if your visa status does not allow it. Build credit slowly, avoid minimum-only payments, and ask before taking paid work.",
+      "links": [
+        {
+          "label": "Business and investing referral",
+          "settingKey": "financeReferralUrl"
+        },
+        {
+          "label": "First credit card referral",
+          "settingKey": "creditCardReferralUrl"
+        }
+      ],
+      "prompts": ["How did you start building credit?", "What money mistake should others avoid?", "Which campus office helped clarify employment rules?"],
+      "experiences": [
+        {
+          "name": "Anonymous alum",
+          "date": "2026-08-18",
+          "visibility": "anonymous",
+          "experience": "For a first credit card, use it for one predictable bill and pay the full statement balance every month. Credit building is easy when utilization stays low and payments are never late."
+        }
+      ]
+    },
+    {
+      "id": "immigration-advice",
+      "title": "Immigration Advice",
+      "kicker": "Visa questions and careful decisions",
+      "image": "assets/images/immigenius-logo.png",
+      "summary": "Collect practical reminders about ISO appointments, I-20 updates, travel signatures, CPT, OPT, SSN timing, and when to talk to a qualified advisor instead of guessing. Featured resource: ImmiGenius for the path to a Green Card in the US.",
+      "links": [
+        {
+          "label": "ImmiGenius: Path to a US Green Card",
+          "settingKey": "immigrationResourceUrl"
+        }
+      ],
+      "prompts": ["What deadline surprised you?", "What should students prepare before travel?", "Which documents do you keep scanned?"],
+      "experiences": [
+        {
+          "name": "Community note",
+          "date": "2026-08-12",
+          "visibility": "credible",
+          "experience": "Before international travel, check your passport validity, visa stamp, I-20 travel signature, enrollment status, and any pending immigration applications. Email ISO early."
+        }
+      ]
+    },
+    {
+      "id": "bangladeshi-faculty",
+      "title": "Bangladeshi Faculty at Rochester",
+      "kicker": "Professors, researchers, and mentors",
+      "image": "assets/images/dr_ehsan_hoque.jpeg",
+      "images": [
+        "assets/images/dr_ehsan_hoque.jpeg",
+        "assets/images/dr_nasir_uddin.jpeg",
+        "assets/images/dr_tanzil_arefin.png",
+        "assets/images/dr_wahed_suman.jpeg"
+      ],
+      "summary": "A quick directory of Bangladeshi faculty and researchers connected with the University of Rochester community. Use these contacts respectfully for academic, research, or mentorship questions that match their area.",
+      "readOnly": true,
+      "faculty": [
+        {
+          "name": "Dr. M. Ehsan Hoque",
+          "title": "Professor of Computer Science",
+          "department": "Department of Computer Science",
+          "email": "mehoque@cs.rochester.edu",
+          "image": "assets/images/dr_ehsan_hoque.jpeg",
+          "profile": "https://www.cs.rochester.edu/people/faculty/hoque_m.ehsan/index.html"
+        },
+        {
+          "name": "Dr. Md Nasir Uddin",
+          "title": "Assistant Professor of Neurology, Biomedical Engineering, and Electrical and Computer Engineering",
+          "department": "URMC and Hajim School of Engineering",
+          "email": "Nasir_Uddin@URMC.Rochester.edu",
+          "image": "assets/images/dr_nasir_uddin.jpeg",
+          "profile": "https://hajim.rochester.edu/ece/people/faculty/uddin_mdnasir/index.html"
+        },
+        {
+          "name": "Dr. Tanzil M. Arefin",
+          "title": "Assistant Professor of Neuroscience",
+          "department": "Arefin Lab and UR CABIN",
+          "email": "Tanzil_Arefin@URMC.Rochester.edu",
+          "image": "assets/images/dr_tanzil_arefin.png",
+          "profile": "https://www.urmc.rochester.edu/labs/arefin"
+        },
+        {
+          "name": "Dr. Abdus S. Wahed",
+          "title": "Professor of Biostatistics",
+          "department": "Department of Biostatistics and Computational Biology",
+          "email": "Abdus_Wahed@urmc.rochester.edu",
+          "image": "assets/images/dr_wahed_suman.jpeg",
+          "profile": "https://www.urmc.rochester.edu/biostat/people/faculty/abdus-wahed-phd"
+        }
+      ]
+    },
+    {
+      "id": "academic-challenges",
+      "title": "Academic Challenges",
+      "kicker": "Classes, grading, and asking for help",
+      "image": "assets/images/working_together.JPEG",
+      "summary": "Notes on office hours, TA support, writing help, group projects, course loads, add/drop decisions, and adapting to a different academic culture.",
+      "prompts": ["Which class habit changed everything?", "How did you recover from a rough first exam?", "What resource should students use earlier?"],
+      "experiences": [
+        {
+          "name": "Anonymous",
+          "date": "2026-08-07",
+          "visibility": "anonymous",
+          "experience": "Office hours are not only for emergencies. Going early helped me understand what professors expected, and it made asking for help feel normal before grades became stressful."
+        }
+      ]
+    },
+    {
+      "id": "research-challenges",
+      "title": "Research Challenges",
+      "kicker": "Labs, advisors, papers, and patience",
+      "image": "assets/images/group_photo_part.JPEG",
+      "summary": "A space for research group expectations, emailing professors, finding projects, handling rejection, reading papers, presenting work, and staying motivated.",
+      "prompts": ["How did you find your first lab?", "What made advisor communication better?", "How do you organize papers and experiments?"],
+      "experiences": [
+        {
+          "name": "Graduate student",
+          "date": "2026-08-16",
+          "visibility": "credible",
+          "experience": "When emailing a professor, mention one specific paper or project and explain your relevant skills in two short paragraphs. Follow up once after a week."
+        }
+      ]
+    },
+    {
+      "id": "religious-events",
+      "title": "Religious Events & Information",
+      "kicker": "Prayer, holidays, and community care",
+      "image": "assets/images/pohela_boishak_event.JPEG",
+      "summary": "Information about Eid gatherings, Ramadan meals, prayer spaces, interfaith resources, local mosques, Hindu puja events, and respectful community announcements.",
+      "prompts": ["Where can students find prayer space?", "Which local events are welcoming?", "What should new students know before Ramadan or major holidays?"],
+      "experiences": [
+        {
+          "name": "Anonymous",
+          "date": "2026-08-11",
+          "visibility": "anonymous",
+          "experience": "Ask senior students about rides before big religious events. Many people are happy to coordinate, but it helps everyone if plans start a few days early."
+        }
+      ]
+    }
+  ]
+}

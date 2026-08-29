@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UofR Bangla | Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/uofr-bangla.css" />
+  </head>
+  <body class="admin-page">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="UofR Bangla home">
+        <span class="brand-mark">
+          <strong>UR</strong>
+          <em>বাংলা</em>
+        </span>
+        <span>
+          <strong>Admin Panel</strong>
+          <small>Moderate community submissions</small>
+        </span>
+      </a>
+      <nav class="nav" aria-label="Admin navigation">
+        <a href="index.html">Public site</a>
+      </nav>
+    </header>
+
+    <main class="admin-shell">
+      <section class="admin-login" id="adminLogin">
+        <p class="eyebrow">Admin access</p>
+        <h1>Review posts before they go public.</h1>
+        <form class="experience-form" id="adminTokenForm">
+          <label>
+            Admin token
+            <input name="token" type="password" autocomplete="current-password" required />
+          </label>
+          <button class="button primary" type="submit">Open moderation</button>
+          <p class="form-status" id="adminLoginStatus" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="admin-dashboard" id="adminDashboard" hidden>
+        <div class="admin-dashboard-header">
+          <div>
+            <p class="eyebrow">Moderation queue</p>
+            <h1>Pending experiences</h1>
+          </div>
+          <div class="admin-actions">
+            <button class="button secondary" id="refreshPosts" type="button">Refresh</button>
+            <button class="button danger" id="logoutAdmin" type="button">Logout</button>
+          </div>
+        </div>
+        <div class="admin-posts" id="adminPosts" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script>
+      window.UR_BANGLA_API_BASE = window.UR_BANGLA_API_BASE || "http://127.0.0.1:9007";
+    </script>
+    <script src="assets/js/admin.js" defer></script>
+  </body>
+</html>
