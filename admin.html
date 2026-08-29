@@ -47,7 +47,12 @@
         <div class="admin-dashboard-header">
           <div>
             <p class="eyebrow">Moderation queue</p>
-            <h1>Pending experiences</h1>
+            <h1>Community experiences</h1>
+            <div class="status-tabs" aria-label="Post status filters">
+              <button class="is-active" type="button" data-status-filter="pending">Pending</button>
+              <button type="button" data-status-filter="approved">Approved</button>
+              <button type="button" data-status-filter="rejected">Rejected</button>
+            </div>
           </div>
           <div class="admin-actions">
             <button class="button secondary" id="refreshPosts" type="button">Refresh</button>

@@ -29,6 +29,37 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function shortLinkLabel(rawUrl) {
+  try {
+    const url = new URL(rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`);
+    const host = url.hostname.replace(/^www\./, "");
+    const path = `${url.pathname}${url.search}`.replace(/\/$/, "");
+    const label = `${host}${path && path !== "/" ? path : ""}`;
+    return label.length > 42 ? `${label.slice(0, 39)}...` : label;
+  } catch (error) {
+    return rawUrl.length > 42 ? `${rawUrl.slice(0, 39)}...` : rawUrl;
+  }
+}
+
+function linkifyText(value) {
+  const urlPattern = /(https?:\/\/[^\s<]+|www\.[^\s<]+)/gi;
+  let output = "";
+  let lastIndex = 0;
+
+  String(value ?? "").replace(urlPattern, (match, _unused, offset) => {
+    output += escapeHtml(String(value ?? "").slice(lastIndex, offset));
+    const cleanMatch = match.replace(/[.,!?;:)]+$/, "");
+    const suffix = match.slice(cleanMatch.length);
+    const href = cleanMatch.startsWith("http") ? cleanMatch : `https://${cleanMatch}`;
+    output += `<a class="inline-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(shortLinkLabel(cleanMatch))}</a>${escapeHtml(suffix)}`;
+    lastIndex = offset + match.length;
+    return match;
+  });
+
+  output += escapeHtml(String(value ?? "").slice(lastIndex));
+  return output;
+}
+
 function resolveLink(link) {
   return link.url || state.settings[link.settingKey] || "#share";
 }
@@ -60,7 +91,7 @@ function renderExperience(item) {
         <strong>${escapeHtml(name)}</strong>
         <time datetime="${escapeHtml(item.date)}">${formatDate(item.date)}</time>
       </div>
-      <p>${escapeHtml(item.experience)}</p>
+      <p>${linkifyText(item.experience)}</p>
     </article>
   `;
 }
