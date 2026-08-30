@@ -3,12 +3,28 @@ const tokenForm = document.querySelector("#adminTokenForm");
 const loginSection = document.querySelector("#adminLogin");
 const dashboard = document.querySelector("#adminDashboard");
 const loginStatus = document.querySelector("#adminLoginStatus");
+const adminStats = document.querySelector("#adminStats");
 const postsContainer = document.querySelector("#adminPosts");
 const refreshButton = document.querySelector("#refreshPosts");
 const logoutButton = document.querySelector("#logoutAdmin");
+const importDirectoryButton = document.querySelector("#importDirectory");
+const directorySearch = document.querySelector("#directorySearch");
+const directoryStatusFilter = document.querySelector("#directoryStatusFilter");
+const directoryRoleFilter = document.querySelector("#directoryRoleFilter");
+const directoryStatus = document.querySelector("#directoryStatus");
+const directoryContacts = document.querySelector("#directoryContacts");
+const selectedContactCount = document.querySelector("#selectedContactCount");
+const selectVisibleContacts = document.querySelector("#selectVisibleContacts");
+const clearSelectedContacts = document.querySelector("#clearSelectedContacts");
+const mailingAudience = document.querySelector("#mailingAudience");
+const mailingForm = document.querySelector("#mailingForm");
+const mailingStatus = document.querySelector("#mailingStatus");
 
 let adminToken = window.sessionStorage.getItem("urBanglaAdminToken") || "";
 let currentStatus = "pending";
+let directoryFilters = { statuses: [], roles: [], sources: [] };
+let visibleContacts = [];
+const selectedContacts = new Set();
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -74,6 +90,155 @@ async function apiFetch(path, options = {}) {
   return response.json();
 }
 
+function renderOptions(select, items, placeholder) {
+  select.innerHTML = `
+    <option value="">${placeholder}</option>
+    ${items.map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.value)} (${item.count})</option>`).join("")}
+  `;
+}
+
+function renderAudienceOptions(filters) {
+  const statusOptions = filters.statuses
+    .map(
+      (item) => `
+        <label class="audience-chip">
+          <input type="checkbox" name="statusAudience" value="${escapeHtml(item.value)}" />
+          <span>${escapeHtml(item.value)} (${item.count})</span>
+        </label>
+      `,
+    )
+    .join("");
+  const roleOptions = filters.roles
+    .map(
+      (item) => `
+        <label class="audience-chip">
+          <input type="checkbox" name="roleAudience" value="${escapeHtml(item.value)}" />
+          <span>${escapeHtml(item.value)} (${item.count})</span>
+        </label>
+      `,
+    )
+    .join("");
+
+  mailingAudience.innerHTML = `
+    <div class="audience-group">
+      <strong>Status</strong>
+      <div>${statusOptions || '<span class="muted-note">No statuses yet</span>'}</div>
+    </div>
+    <div class="audience-group">
+      <strong>Role</strong>
+      <div>${roleOptions || '<span class="muted-note">No roles yet</span>'}</div>
+    </div>
+    <p class="muted-note">Leave audience boxes empty to send to every active directory contact.</p>
+  `;
+}
+
+function updateSelectedContactCount() {
+  const count = selectedContacts.size;
+  selectedContactCount.textContent = `${count} selected`;
+  mailingStatus.textContent = count
+    ? `Selected mode active. The next email will go only to ${count} selected contact${count === 1 ? "" : "s"}.`
+    : "";
+}
+
+function countFor(items, key) {
+  return items.find((item) => item.value === key)?.count || 0;
+}
+
+function renderAdminStats(summary) {
+  const directory = summary.directory || {};
+  const subscribers = summary.subscribers || {};
+  adminStats.innerHTML = `
+    <article>
+      <span>Pending posts</span>
+      <strong>${countFor(summary.posts || [], "pending")}</strong>
+    </article>
+    <article>
+      <span>Registered directory</span>
+      <strong>${directory.active || 0}</strong>
+      <small>${directory.verified || 0} verified</small>
+    </article>
+    <article>
+      <span>Public-ready profiles</span>
+      <strong>${directory.public_ready || 0}</strong>
+    </article>
+    <article>
+      <span>Post subscribers</span>
+      <strong>${subscribers.active || 0}</strong>
+      <small>Separate list</small>
+    </article>
+  `;
+}
+
+async function loadAdminSummary() {
+  if (!adminStats) return;
+  const summary = await apiFetch("/api/admin/summary");
+  renderAdminStats(summary);
+}
+
+function renderDirectoryContacts(contacts) {
+  if (!contacts.length) {
+    directoryContacts.innerHTML = '<p class="empty-state">No directory contacts match this view.</p>';
+    return;
+  }
+
+  directoryContacts.innerHTML = contacts
+    .map(
+      (contact) => `
+        <article class="directory-contact ${selectedContacts.has(String(contact.id)) ? "is-selected" : ""}">
+          <label class="directory-select">
+            <input
+              type="checkbox"
+              value="${escapeHtml(contact.id)}"
+              ${selectedContacts.has(String(contact.id)) ? "checked" : ""}
+              aria-label="Select ${escapeHtml(contact.name || contact.email)}"
+              data-contact-select
+            />
+            <span>Select</span>
+          </label>
+          <div>
+            <strong>${escapeHtml(contact.name || "Unnamed contact")}</strong>
+            <a href="mailto:${escapeHtml(contact.email)}">${escapeHtml(contact.email)}</a>
+          </div>
+          <div class="directory-badges">
+            <span>${escapeHtml(contact.affiliation_status || "Unlisted")}</span>
+            <span>${escapeHtml(contact.role)}</span>
+            ${contact.is_faculty ? "<span>Faculty</span>" : ""}
+            ${contact.verified_at ? "<span>Verified</span>" : "<span>Imported</span>"}
+            ${contact.public_profile ? "<span>Public-ready</span>" : ""}
+          </div>
+          <p>${escapeHtml(contact.current_affiliation || contact.department || contact.interests || contact.event_preference || contact.source)}</p>
+          <small>${escapeHtml(contact.source)}</small>
+        </article>
+      `,
+    )
+    .join("");
+}
+
+async function loadDirectory() {
+  if (!directoryContacts) return;
+
+  directoryStatus.textContent = "Loading directory...";
+  const params = new URLSearchParams();
+  if (directorySearch.value.trim()) params.set("q", directorySearch.value.trim());
+  if (directoryStatusFilter.value) params.set("status", directoryStatusFilter.value);
+  if (directoryRoleFilter.value) params.set("role", directoryRoleFilter.value);
+
+  const data = await apiFetch(`/api/admin/directory?${params.toString()}`);
+  directoryFilters = data.filters;
+
+  if (directoryStatusFilter.options.length <= 1) {
+    renderOptions(directoryStatusFilter, directoryFilters.statuses, "All statuses");
+  }
+  if (directoryRoleFilter.options.length <= 1) {
+    renderOptions(directoryRoleFilter, directoryFilters.roles, "All roles");
+  }
+  renderAudienceOptions(directoryFilters);
+  visibleContacts = data.contacts;
+  renderDirectoryContacts(data.contacts);
+  directoryStatus.textContent = `${data.contacts.length} active contact${data.contacts.length === 1 ? "" : "s"} shown.`;
+  updateSelectedContactCount();
+}
+
 function renderPosts(posts) {
   if (!posts.length) {
     postsContainer.innerHTML = `<p class="empty-state">No ${escapeHtml(currentStatus)} posts right now.</p>`;
@@ -132,6 +297,8 @@ tokenForm.addEventListener("submit", async (event) => {
 
   try {
     await loadPosts();
+    await loadAdminSummary();
+    await loadDirectory();
     loginSection.hidden = true;
     dashboard.hidden = false;
   } catch (error) {
@@ -168,10 +335,101 @@ document.querySelectorAll("[data-status-filter]").forEach((button) => {
       .querySelectorAll("[data-status-filter]")
       .forEach((item) => item.classList.toggle("is-active", item === button));
     await loadPosts();
+    await loadAdminSummary();
   });
 });
 
-refreshButton.addEventListener("click", loadPosts);
+refreshButton.addEventListener("click", async () => {
+  await loadPosts();
+  await loadAdminSummary();
+});
+
+importDirectoryButton?.addEventListener("click", async () => {
+  importDirectoryButton.disabled = true;
+  directoryStatus.textContent = "Refreshing directory from seed data...";
+  try {
+    const result = await apiFetch("/api/admin/directory/import-seed", { method: "POST" });
+    directoryStatus.textContent = `Directory refreshed with ${result.imported} seed contacts.`;
+    directoryStatusFilter.innerHTML = '<option value="">All statuses</option>';
+    directoryRoleFilter.innerHTML = '<option value="">All roles</option>';
+    await loadDirectory();
+    await loadAdminSummary();
+  } catch (error) {
+    directoryStatus.textContent = `Could not refresh directory: ${error.message}`;
+  } finally {
+    importDirectoryButton.disabled = false;
+  }
+});
+
+directorySearch?.addEventListener("input", () => {
+  window.clearTimeout(directorySearch.searchTimer);
+  directorySearch.searchTimer = window.setTimeout(loadDirectory, 220);
+});
+
+directoryStatusFilter?.addEventListener("change", loadDirectory);
+directoryRoleFilter?.addEventListener("change", loadDirectory);
+
+directoryContacts?.addEventListener("change", (event) => {
+  const checkbox = event.target.closest("[data-contact-select]");
+  if (!checkbox) return;
+
+  if (checkbox.checked) {
+    selectedContacts.add(checkbox.value);
+  } else {
+    selectedContacts.delete(checkbox.value);
+  }
+
+  checkbox.closest(".directory-contact")?.classList.toggle("is-selected", checkbox.checked);
+  updateSelectedContactCount();
+});
+
+selectVisibleContacts?.addEventListener("click", () => {
+  visibleContacts.forEach((contact) => selectedContacts.add(String(contact.id)));
+  renderDirectoryContacts(visibleContacts);
+  updateSelectedContactCount();
+});
+
+clearSelectedContacts?.addEventListener("click", () => {
+  selectedContacts.clear();
+  renderDirectoryContacts(visibleContacts);
+  updateSelectedContactCount();
+});
+
+mailingForm?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const formData = new FormData(mailingForm);
+  const selectedContactIds = [...selectedContacts].map((id) => Number(id)).filter(Boolean);
+  const payload = {
+    subject: formData.get("subject").trim(),
+    message: formData.get("message").trim(),
+    statuses: formData.getAll("statusAudience"),
+    roles: formData.getAll("roleAudience"),
+    sources: [],
+    selectedContactIds,
+    testEmail: formData.get("testEmail").trim() || null,
+  };
+  const audienceLabel = payload.testEmail || (selectedContactIds.length ? `${selectedContactIds.length} selected contact${selectedContactIds.length === 1 ? "" : "s"}` : "the selected active directory audience");
+
+  if (!window.confirm(`Send this email to ${audienceLabel}?`)) return;
+
+  mailingStatus.textContent = "Sending...";
+  try {
+    const result = await apiFetch("/api/admin/mailing/send", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    mailingStatus.textContent = `Campaign ${result.campaign_id}: ${result.sent_count} sent, ${result.failed_count} failed.`;
+    if (!payload.testEmail && result.failed_count === 0) {
+      mailingForm.reset();
+      selectedContacts.clear();
+      renderDirectoryContacts(visibleContacts);
+      updateSelectedContactCount();
+    }
+    await loadAdminSummary();
+  } catch (error) {
+    mailingStatus.textContent = `Could not send email: ${error.message}`;
+  }
+});
 
 logoutButton.addEventListener("click", () => {
   adminToken = "";
@@ -179,10 +437,12 @@ logoutButton.addEventListener("click", () => {
   dashboard.hidden = true;
   loginSection.hidden = false;
   postsContainer.innerHTML = "";
+  adminStats.innerHTML = "";
+  directoryContacts.innerHTML = "";
 });
 
 if (adminToken) {
-  loadPosts()
+  Promise.all([loadPosts(), loadAdminSummary(), loadDirectory()])
     .then(() => {
       loginSection.hidden = true;
       dashboard.hidden = false;

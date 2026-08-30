@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UofR Bangla | Directory Registration</title>
+    <meta
+      name="description"
+      content="Register or update a verified UofR Bangla community directory profile."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/uofr-bangla.css?v=20260830-1" />
+  </head>
+  <body class="registration-page">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="UofR Bangla home">
+        <span class="brand-mark">
+          <strong>UR</strong>
+          <em>বাংলা</em>
+        </span>
+        <span>
+          <strong>Directory Registration</strong>
+          <small>Verified community profiles</small>
+        </span>
+      </a>
+      <nav class="nav simple-nav" aria-label="Registration navigation">
+        <a href="index.html">Public site</a>
+        <a href="admin.html">Admin</a>
+      </nav>
+    </header>
+
+    <main class="registration-shell">
+      <section class="registration-intro">
+        <p class="eyebrow">Community directory</p>
+        <h1>Register once, update your affiliation whenever life moves.</h1>
+        <p>
+          This verified directory is separate from free post subscriptions. For now it is visible only to admins, and it
+          can later support a public opt-in directory.
+        </p>
+      </section>
+
+      <section class="registration-card">
+        <form class="experience-form" id="directoryRegistrationForm">
+          <label>
+            Full name
+            <input name="name" type="text" maxlength="120" required />
+          </label>
+          <label>
+            Email
+            <input name="email" type="email" maxlength="180" required />
+          </label>
+          <div class="form-row">
+            <label>
+              Status
+              <select name="role" id="directoryRole" required>
+                <option value="Grad">Grad</option>
+                <option value="Undergrad">Undergrad</option>
+                <option value="Postdoc">Postdoc</option>
+                <option value="Faculty">Faculty</option>
+                <option value="Employee">Employee</option>
+                <option value="Alumni">Alumni</option>
+              </select>
+            </label>
+            <label>
+              Department
+              <input name="department" type="text" maxlength="160" placeholder="Optional" />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>
+              Phone
+              <input name="phone" type="tel" maxlength="60" placeholder="Optional" />
+            </label>
+            <label>
+              Graduation year
+              <input name="graduationYear" type="text" maxlength="12" placeholder="For alumni, optional" />
+            </label>
+          </div>
+          <label id="currentAffiliationLabel">
+            Current affiliation
+            <input
+              name="currentAffiliation"
+              type="text"
+              maxlength="180"
+              placeholder="Company, university, lab, employer, or city"
+            />
+          </label>
+          <label class="check-card">
+            <input name="publicProfile" type="checkbox" />
+            <span>Allow this profile to be considered for a future public directory.</span>
+          </label>
+          <button class="button primary" type="submit">Send verification code</button>
+          <p class="form-status" id="registrationStatus" role="status" aria-live="polite"></p>
+        </form>
+
+        <form class="experience-form otp-form" id="directoryOtpForm" hidden>
+          <label>
+            Verification code
+            <input name="code" type="text" inputmode="numeric" maxlength="12" autocomplete="one-time-code" required />
+          </label>
+          <button class="button primary" type="submit">Confirm registration</button>
+          <button class="button secondary" id="editRegistration" type="button">Edit details</button>
+          <p class="form-status" id="otpStatus" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      window.UR_BANGLA_API_BASE = window.UR_BANGLA_API_BASE || "https://jerin-api.flyai.online/x006";
+    </script>
+    <script src="assets/js/register.js?v=20260830-1" defer></script>
+  </body>
+</html>

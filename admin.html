@@ -24,8 +24,9 @@
           <small>Moderate community submissions</small>
         </span>
       </a>
-      <nav class="nav" aria-label="Admin navigation">
+      <nav class="nav simple-nav" aria-label="Admin navigation">
         <a href="index.html">Public site</a>
+        <a href="register.html">Registration</a>
       </nav>
     </header>
 
@@ -59,7 +60,69 @@
             <button class="button danger" id="logoutAdmin" type="button">Logout</button>
           </div>
         </div>
+        <div class="admin-stats" id="adminStats" aria-live="polite"></div>
         <div class="admin-posts" id="adminPosts" aria-live="polite"></div>
+
+        <section class="mailing-admin" aria-labelledby="mailingTitle">
+          <div class="mailing-header">
+            <div>
+              <p class="eyebrow">Mailing directory</p>
+              <h2 id="mailingTitle">Send community updates</h2>
+            </div>
+            <button class="button secondary" id="importDirectory" type="button">Refresh directory</button>
+          </div>
+
+          <div class="mailing-grid">
+            <section class="directory-panel" aria-label="Directory contacts">
+              <div class="directory-tools">
+                <label>
+                  Search
+                  <input id="directorySearch" type="search" placeholder="Name, email, department" />
+                </label>
+                <label>
+                  Status
+                  <select id="directoryStatusFilter">
+                    <option value="">All statuses</option>
+                  </select>
+                </label>
+                <label>
+                  Role
+                  <select id="directoryRoleFilter">
+                    <option value="">All roles</option>
+                  </select>
+                </label>
+              </div>
+              <div class="selection-tools">
+                <strong id="selectedContactCount">0 selected</strong>
+                <button class="button secondary compact-button" id="selectVisibleContacts" type="button">Select visible</button>
+                <button class="button secondary compact-button" id="clearSelectedContacts" type="button">Clear</button>
+              </div>
+              <p class="form-status" id="directoryStatus" role="status" aria-live="polite"></p>
+              <div class="directory-list" id="directoryContacts"></div>
+            </section>
+
+            <form class="mailing-form" id="mailingForm">
+              <div>
+                <p class="eyebrow">Audience</p>
+                <div class="audience-options" id="mailingAudience"></div>
+              </div>
+              <label>
+                Test email
+                <input name="testEmail" type="email" placeholder="Optional test recipient" />
+              </label>
+              <label>
+                Subject
+                <input name="subject" type="text" placeholder="UR BSA: Welcome Tea Update" required />
+              </label>
+              <label>
+                Message
+                <textarea name="message" rows="8" placeholder="Write the email body..." required></textarea>
+              </label>
+              <button class="button primary" type="submit">Send email</button>
+              <p class="form-status" id="mailingStatus" role="status" aria-live="polite"></p>
+            </form>
+          </div>
+        </section>
       </section>
     </main>
 

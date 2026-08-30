@@ -95,7 +95,8 @@
         "assets/images/dr_ehsan_hoque.jpeg",
         "assets/images/dr_nasir_uddin.jpeg",
         "assets/images/dr_tanzil_arefin.png",
-        "assets/images/dr_wahed_suman.jpeg"
+        "assets/images/dr_wahed_suman.jpeg",
+        "assets/images/dr_samia_lopa.jpg"
       ],
       "summary": "A quick directory of Bangladeshi faculty and researchers connected with the University of Rochester community. Use these contacts respectfully for academic, research, or mentorship questions that match their area.",
       "readOnly": true,
@@ -131,6 +132,14 @@
           "email": "Abdus_Wahed@urmc.rochester.edu",
           "image": "assets/images/dr_wahed_suman.jpeg",
           "profile": "https://www.urmc.rochester.edu/biostat/people/faculty/abdus-wahed-phd"
+        },
+        {
+          "name": "Dr. Samia Lopa",
+          "title": "Research Assistant Professor",
+          "department": "Department of Biostatistics and Computational Biology",
+          "email": "samia_lopa@urmc.rochester.edu",
+          "image": "assets/images/dr_samia_lopa.jpg",
+          "profile": "https://www.urmc.rochester.edu/biostat/people/faculty/lopa-samia"
         }
       ]
     },
