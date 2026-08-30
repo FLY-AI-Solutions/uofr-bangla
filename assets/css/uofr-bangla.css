@@ -838,7 +838,7 @@ legend {
 
 .registration-shell {
   display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(360px, 1fr);
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1fr);
   gap: clamp(24px, 5vw, 64px);
   align-items: start;
   padding: clamp(42px, 7vw, 90px) clamp(18px, 5vw, 72px);
@@ -870,10 +870,11 @@ legend {
   box-shadow: var(--shadow);
 }
 
-.check-card {
+.experience-form .check-card {
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  min-width: 0;
   border: 1px solid rgba(0, 106, 78, 0.16);
   border-radius: 8px;
   background: rgba(0, 106, 78, 0.06);
@@ -882,8 +883,16 @@ legend {
   font-weight: 800;
 }
 
-.check-card input {
+.experience-form .check-card input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
   margin-top: 5px;
+}
+
+.experience-form .check-card span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .is-emphasized input {
@@ -1148,6 +1157,17 @@ legend {
   gap: 14px;
 }
 
+.group-builder {
+  display: grid;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 16px;
+}
+
+.group-builder .form-row {
+  grid-template-columns: 1fr 1fr;
+}
+
 .audience-options {
   display: grid;
   gap: 13px;
@@ -1224,6 +1244,10 @@ legend {
     position: static;
   }
 
+  .registration-card {
+    max-width: 760px;
+  }
+
   .guide-section:nth-child(even) .section-photo,
   .guide-section:nth-child(even) .section-body,
   .faculty-section:nth-child(even) .section-photo,
@@ -1260,6 +1284,10 @@ legend {
   .directory-tools,
   .admin-stats {
     display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .group-builder .form-row {
     grid-template-columns: 1fr;
   }
 }
@@ -1306,6 +1334,21 @@ legend {
     grid-column: 1 / -1;
   }
 
+  .registration-page .topbar,
+  .admin-page .topbar {
+    grid-template-columns: 1fr;
+  }
+
+  .registration-page .brand,
+  .admin-page .brand {
+    min-width: 0;
+  }
+
+  .registration-page .nav.simple-nav,
+  .admin-page .nav.simple-nav {
+    width: 100%;
+  }
+
   .nav a {
     display: flex;
     justify-content: center;
@@ -1317,6 +1360,34 @@ legend {
 
   .hero {
     min-height: auto;
+  }
+
+  .registration-shell {
+    gap: 18px;
+    padding: 28px 14px 44px;
+  }
+
+  .registration-intro h1 {
+    font-size: 2.15rem;
+    line-height: 1.04;
+  }
+
+  .registration-intro p:last-child {
+    font-size: 0.96rem;
+  }
+
+  .registration-card {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .registration-card .experience-form {
+    gap: 13px;
+    padding: 16px;
+  }
+
+  .registration-card .button {
+    width: 100%;
   }
 
   .hero-gallery,

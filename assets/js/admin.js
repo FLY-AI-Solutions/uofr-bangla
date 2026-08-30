@@ -19,6 +19,13 @@ const clearSelectedContacts = document.querySelector("#clearSelectedContacts");
 const mailingAudience = document.querySelector("#mailingAudience");
 const mailingForm = document.querySelector("#mailingForm");
 const mailingStatus = document.querySelector("#mailingStatus");
+const groupName = document.querySelector("#groupName");
+const groupEmails = document.querySelector("#groupEmails");
+const groupDefaultRole = document.querySelector("#groupDefaultRole");
+const groupDefaultStatus = document.querySelector("#groupDefaultStatus");
+const createEmailGroup = document.querySelector("#createEmailGroup");
+const groupStatus = document.querySelector("#groupStatus");
+const mailingGroupSelect = document.querySelector("#mailingGroupSelect");
 
 let adminToken = window.sessionStorage.getItem("urBanglaAdminToken") || "";
 let currentStatus = "pending";
@@ -130,6 +137,23 @@ function renderAudienceOptions(filters) {
     </div>
     <p class="muted-note">Leave audience boxes empty to send to every active directory contact.</p>
   `;
+}
+
+function renderEmailGroups(groups) {
+  if (!groups.length) {
+    mailingGroupSelect.innerHTML = '<option disabled>No saved groups yet</option>';
+    return;
+  }
+
+  mailingGroupSelect.innerHTML = groups
+    .map((group) => `<option value="${escapeHtml(group.id)}">${escapeHtml(group.name)} (${group.member_count})</option>`)
+    .join("");
+}
+
+async function loadEmailGroups() {
+  if (!mailingGroupSelect) return;
+  const groups = await apiFetch("/api/admin/email-groups");
+  renderEmailGroups(groups);
 }
 
 function updateSelectedContactCount() {
@@ -299,6 +323,7 @@ tokenForm.addEventListener("submit", async (event) => {
     await loadPosts();
     await loadAdminSummary();
     await loadDirectory();
+    await loadEmailGroups();
     loginSection.hidden = true;
     dashboard.hidden = false;
   } catch (error) {
@@ -354,6 +379,7 @@ importDirectoryButton?.addEventListener("click", async () => {
     directoryRoleFilter.innerHTML = '<option value="">All roles</option>';
     await loadDirectory();
     await loadAdminSummary();
+    await loadEmailGroups();
   } catch (error) {
     directoryStatus.textContent = `Could not refresh directory: ${error.message}`;
   } finally {
@@ -383,6 +409,32 @@ directoryContacts?.addEventListener("change", (event) => {
   updateSelectedContactCount();
 });
 
+createEmailGroup?.addEventListener("click", async () => {
+  createEmailGroup.disabled = true;
+  groupStatus.textContent = "Creating group...";
+  try {
+    const result = await apiFetch("/api/admin/email-groups", {
+      method: "POST",
+      body: JSON.stringify({
+        name: groupName.value.trim(),
+        description: "",
+        pastedEmails: groupEmails.value,
+        defaultRole: groupDefaultRole.value.trim() || "Event",
+        defaultStatus: groupDefaultStatus.value.trim() || "Event group",
+      }),
+    });
+    groupStatus.textContent = `${result.name}: ${result.parsed_count} email${result.parsed_count === 1 ? "" : "s"} parsed, ${result.added_count} new member${result.added_count === 1 ? "" : "s"} added.`;
+    groupEmails.value = "";
+    await loadDirectory();
+    await loadEmailGroups();
+    await loadAdminSummary();
+  } catch (error) {
+    groupStatus.textContent = `Could not create group: ${error.message}`;
+  } finally {
+    createEmailGroup.disabled = false;
+  }
+});
+
 selectVisibleContacts?.addEventListener("click", () => {
   visibleContacts.forEach((contact) => selectedContacts.add(String(contact.id)));
   renderDirectoryContacts(visibleContacts);
@@ -399,6 +451,7 @@ mailingForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(mailingForm);
   const selectedContactIds = [...selectedContacts].map((id) => Number(id)).filter(Boolean);
+  const groupIds = [...mailingGroupSelect.selectedOptions].map((option) => Number(option.value)).filter(Boolean);
   const payload = {
     subject: formData.get("subject").trim(),
     message: formData.get("message").trim(),
@@ -406,9 +459,16 @@ mailingForm?.addEventListener("submit", async (event) => {
     roles: formData.getAll("roleAudience"),
     sources: [],
     selectedContactIds,
+    groupIds,
     testEmail: formData.get("testEmail").trim() || null,
   };
-  const audienceLabel = payload.testEmail || (selectedContactIds.length ? `${selectedContactIds.length} selected contact${selectedContactIds.length === 1 ? "" : "s"}` : "the selected active directory audience");
+  const audienceLabel =
+    payload.testEmail ||
+    (selectedContactIds.length
+      ? `${selectedContactIds.length} selected contact${selectedContactIds.length === 1 ? "" : "s"}`
+      : groupIds.length
+        ? `${groupIds.length} saved group${groupIds.length === 1 ? "" : "s"}`
+        : "the selected active directory audience");
 
   if (!window.confirm(`Send this email to ${audienceLabel}?`)) return;
 
@@ -422,6 +482,9 @@ mailingForm?.addEventListener("submit", async (event) => {
     if (!payload.testEmail && result.failed_count === 0) {
       mailingForm.reset();
       selectedContacts.clear();
+      [...mailingGroupSelect.options].forEach((option) => {
+        option.selected = false;
+      });
       renderDirectoryContacts(visibleContacts);
       updateSelectedContactCount();
     }
@@ -442,7 +505,7 @@ logoutButton.addEventListener("click", () => {
 });
 
 if (adminToken) {
-  Promise.all([loadPosts(), loadAdminSummary(), loadDirectory()])
+  Promise.all([loadPosts(), loadAdminSummary(), loadDirectory(), loadEmailGroups()])
     .then(() => {
       loginSection.hidden = true;
       dashboard.hidden = false;

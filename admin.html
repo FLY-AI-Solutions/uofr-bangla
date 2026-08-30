@@ -102,8 +102,36 @@
             </section>
 
             <form class="mailing-form" id="mailingForm">
+              <section class="group-builder" aria-labelledby="groupBuilderTitle">
+                <p class="eyebrow" id="groupBuilderTitle">Saved groups</p>
+                <label>
+                  Group name
+                  <input id="groupName" type="text" maxlength="120" placeholder="Welcome Tea Fall 2026" />
+                </label>
+                <label>
+                  Paste emails from Excel
+                  <textarea id="groupEmails" rows="5" placeholder="Paste one column, rows, or mixed cells with emails"></textarea>
+                </label>
+                <div class="form-row">
+                  <label>
+                    Default role
+                    <input id="groupDefaultRole" type="text" maxlength="80" value="Event" />
+                  </label>
+                  <label>
+                    Default status
+                    <input id="groupDefaultStatus" type="text" maxlength="80" value="Event group" />
+                  </label>
+                </div>
+                <button class="button secondary" id="createEmailGroup" type="button">Create group</button>
+                <p class="form-status" id="groupStatus" role="status" aria-live="polite"></p>
+              </section>
+
               <div>
                 <p class="eyebrow">Audience</p>
+                <label>
+                  Saved group
+                  <select id="mailingGroupSelect" multiple size="4"></select>
+                </label>
                 <div class="audience-options" id="mailingAudience"></div>
               </div>
               <label>
