@@ -44,6 +44,7 @@ registrationForm.addEventListener("submit", async (event) => {
     phone: formData.get("phone").trim(),
     currentAffiliation: formData.get("currentAffiliation").trim(),
     graduationYear: formData.get("graduationYear").trim(),
+    profileLink: formData.get("profileLink").trim(),
     publicProfile: formData.get("publicProfile") === "on",
   };
 

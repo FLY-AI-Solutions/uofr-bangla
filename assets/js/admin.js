@@ -231,6 +231,11 @@ function renderDirectoryContacts(contacts) {
             ${contact.public_profile ? "<span>Public-ready</span>" : ""}
           </div>
           <p>${escapeHtml(contact.current_affiliation || contact.department || contact.interests || contact.event_preference || contact.source)}</p>
+          ${
+            contact.profile_link
+              ? `<a class="directory-profile-link" href="${escapeHtml(contact.profile_link)}" target="_blank" rel="noopener noreferrer">Website / LinkedIn</a>`
+              : ""
+          }
           <small>${escapeHtml(contact.source)}</small>
         </article>
       `,

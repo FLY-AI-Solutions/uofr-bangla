@@ -1120,6 +1120,16 @@ legend {
   overflow-wrap: anywhere;
 }
 
+.directory-contact .directory-profile-link {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  border-radius: 6px;
+  background: rgba(0, 32, 91, 0.08);
+  padding: 5px 8px;
+  text-decoration: none;
+}
+
 .directory-contact p {
   margin: 8px 0 0;
   color: var(--muted);
