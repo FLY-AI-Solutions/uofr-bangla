@@ -142,10 +142,32 @@
                 Subject
                 <input name="subject" type="text" placeholder="UR BSA: Welcome Tea Update" required />
               </label>
-              <label>
-                Message
-                <textarea name="message" rows="8" placeholder="Write the email body..." required></textarea>
-              </label>
+              <section class="compose-field" aria-labelledby="mailingMessageLabel">
+                <div class="compose-label-row">
+                  <span id="mailingMessageLabel">Message</span>
+                  <small>Rich formatting with plain-text fallback</small>
+                </div>
+                <div class="compose-editor">
+                  <div class="compose-toolbar" aria-label="Email formatting tools">
+                    <button type="button" data-format="bold" aria-label="Bold"><strong>B</strong></button>
+                    <button type="button" data-format="italic" aria-label="Italic"><em>I</em></button>
+                    <button type="button" data-format="underline" aria-label="Underline"><span>U</span></button>
+                    <button type="button" data-format="insertUnorderedList" aria-label="Bulleted list">List</button>
+                    <button type="button" data-format="createLink" aria-label="Add link">Link</button>
+                    <button type="button" data-format="removeFormat" aria-label="Clear formatting">Clear</button>
+                  </div>
+                  <div
+                    class="compose-box"
+                    id="mailingEditor"
+                    contenteditable="true"
+                    role="textbox"
+                    aria-multiline="true"
+                    aria-labelledby="mailingMessageLabel"
+                    data-placeholder="Write the email body..."
+                  ></div>
+                </div>
+                <textarea name="message" id="mailingMessage" hidden></textarea>
+              </section>
               <button class="button primary" type="submit">Send email</button>
               <p class="form-status" id="mailingStatus" role="status" aria-live="polite"></p>
             </form>

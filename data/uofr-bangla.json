@@ -96,7 +96,8 @@
         "assets/images/dr_nasir_uddin.jpeg",
         "assets/images/dr_tanzil_arefin.png",
         "assets/images/dr_wahed_suman.jpeg",
-        "assets/images/dr_samia_lopa.jpg"
+        "assets/images/dr_samia_lopa.jpg",
+        "assets/images/dr_akm_rahman.jpg"
       ],
       "summary": "A quick directory of Bangladeshi faculty and researchers connected with the University of Rochester community. Use these contacts respectfully for academic, research, or mentorship questions that match their area.",
       "readOnly": true,
@@ -140,6 +141,14 @@
           "email": "samia_lopa@urmc.rochester.edu",
           "image": "assets/images/dr_samia_lopa.jpg",
           "profile": "https://www.urmc.rochester.edu/biostat/people/faculty/lopa-samia"
+        },
+        {
+          "name": "Dr. Akm A. Rahman",
+          "title": "Associate Professor",
+          "department": "Department of Imaging Sciences (SMD)",
+          "email": "Akm_Rahman@urmc.rochester.edu",
+          "image": "assets/images/dr_akm_rahman.jpg",
+          "profile": "https://www.urmc.rochester.edu/people/112361764-akm-a-rahman"
         }
       ]
     },

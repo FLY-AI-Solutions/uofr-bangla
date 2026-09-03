@@ -26,6 +26,9 @@ const groupDefaultStatus = document.querySelector("#groupDefaultStatus");
 const createEmailGroup = document.querySelector("#createEmailGroup");
 const groupStatus = document.querySelector("#groupStatus");
 const mailingGroupSelect = document.querySelector("#mailingGroupSelect");
+const mailingEditor = document.querySelector("#mailingEditor");
+const mailingMessage = document.querySelector("#mailingMessage");
+const composeFormatButtons = document.querySelectorAll("[data-format]");
 
 let adminToken = window.sessionStorage.getItem("urBanglaAdminToken") || "";
 let currentStatus = "pending";
@@ -71,6 +74,55 @@ function linkifyText(value) {
 
   output += escapeHtml(String(value ?? "").slice(lastIndex));
   return output;
+}
+
+function normalizeUrl(rawUrl) {
+  const trimmed = String(rawUrl || "").trim();
+  if (!trimmed) return "";
+  if (/^mailto:/i.test(trimmed)) return trimmed;
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
+function sanitizeComposeHtml(value) {
+  const template = document.createElement("template");
+  template.innerHTML = value;
+  template.content.querySelectorAll("script, style, iframe, object, embed").forEach((node) => node.remove());
+
+  const allowedTags = new Set(["A", "B", "BR", "DIV", "EM", "I", "LI", "OL", "P", "STRONG", "U", "UL"]);
+  template.content.querySelectorAll("*").forEach((node) => {
+    if (!allowedTags.has(node.tagName)) {
+      node.replaceWith(...node.childNodes);
+      return;
+    }
+
+    const originalHref = node.tagName === "A" ? node.getAttribute("href") : "";
+    [...node.attributes].forEach((attribute) => node.removeAttribute(attribute.name));
+    if (node.tagName === "A") {
+      const href = normalizeUrl(originalHref);
+      if (!/^(https?:\/\/|mailto:)/i.test(href)) {
+        node.replaceWith(...node.childNodes);
+        return;
+      }
+      node.setAttribute("href", href);
+      node.setAttribute("target", "_blank");
+      node.setAttribute("rel", "noopener noreferrer");
+    }
+  });
+
+  return template.innerHTML.trim();
+}
+
+function composePlainText() {
+  return (mailingEditor?.innerText || "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function updateComposeMessage() {
+  if (!mailingMessage) return;
+  mailingMessage.value = composePlainText();
+}
+
+function focusEditor() {
+  mailingEditor?.focus();
 }
 
 function authHeaders() {
@@ -452,14 +504,49 @@ clearSelectedContacts?.addEventListener("click", () => {
   updateSelectedContactCount();
 });
 
+composeFormatButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    focusEditor();
+    const command = button.dataset.format;
+    if (command === "createLink") {
+      const url = normalizeUrl(window.prompt("Paste the website or email link") || "");
+      if (!url) return;
+      document.execCommand("createLink", false, url);
+    } else {
+      document.execCommand(command, false, null);
+    }
+    updateComposeMessage();
+  });
+});
+
+mailingEditor?.addEventListener("input", updateComposeMessage);
+
+mailingEditor?.addEventListener("paste", (event) => {
+  event.preventDefault();
+  const text = event.clipboardData?.getData("text/plain") || "";
+  document.execCommand("insertText", false, text);
+  updateComposeMessage();
+});
+
 mailingForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(mailingForm);
   const selectedContactIds = [...selectedContacts].map((id) => Number(id)).filter(Boolean);
   const groupIds = [...mailingGroupSelect.selectedOptions].map((option) => Number(option.value)).filter(Boolean);
+  const plainMessage = composePlainText();
+  const htmlMessage = sanitizeComposeHtml(mailingEditor?.innerHTML || "");
+
+  if (!plainMessage) {
+    mailingStatus.textContent = "Please write a message before sending.";
+    focusEditor();
+    return;
+  }
+
+  mailingMessage.value = plainMessage;
   const payload = {
     subject: formData.get("subject").trim(),
-    message: formData.get("message").trim(),
+    message: plainMessage,
+    htmlMessage,
     statuses: formData.getAll("statusAudience"),
     roles: formData.getAll("roleAudience"),
     sources: [],
@@ -490,6 +577,8 @@ mailingForm?.addEventListener("submit", async (event) => {
       [...mailingGroupSelect.options].forEach((option) => {
         option.selected = false;
       });
+      if (mailingEditor) mailingEditor.innerHTML = "";
+      updateComposeMessage();
       renderDirectoryContacts(visibleContacts);
       updateSelectedContactCount();
     }

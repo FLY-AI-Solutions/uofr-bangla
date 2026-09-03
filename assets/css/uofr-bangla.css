@@ -1167,6 +1167,95 @@ legend {
   gap: 14px;
 }
 
+.compose-field {
+  display: grid;
+  gap: 8px;
+}
+
+.compose-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.compose-label-row small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.compose-editor {
+  overflow: hidden;
+  border: 1px solid rgba(0, 32, 91, 0.16);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.compose-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(0, 32, 91, 0.035);
+  padding: 8px;
+}
+
+.compose-toolbar button {
+  min-height: 34px;
+  border: 1px solid rgba(0, 32, 91, 0.16);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--blue);
+  padding: 0 10px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.compose-toolbar button:hover,
+.compose-toolbar button:focus-visible {
+  border-color: rgba(0, 32, 91, 0.45);
+  background: rgba(0, 32, 91, 0.08);
+  outline: none;
+}
+
+.compose-box {
+  min-height: 210px;
+  max-height: 420px;
+  overflow: auto;
+  padding: 14px;
+  color: #26312e;
+  line-height: 1.55;
+  outline: none;
+  overflow-wrap: anywhere;
+}
+
+.compose-box:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(38, 49, 46, 0.48);
+}
+
+.compose-box a {
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.compose-box p,
+.compose-box div {
+  margin: 0 0 10px;
+}
+
+.compose-box ul,
+.compose-box ol {
+  margin: 0 0 10px 20px;
+  padding: 0;
+}
+
 .group-builder {
   display: grid;
   gap: 12px;
@@ -1398,6 +1487,19 @@ legend {
 
   .registration-card .button {
     width: 100%;
+  }
+
+  .compose-label-row {
+    display: grid;
+  }
+
+  .compose-label-row small {
+    text-align: left;
+  }
+
+  .compose-toolbar button {
+    flex: 1 1 calc(33.333% - 6px);
+    padding-inline: 8px;
   }
 
   .hero-gallery,
