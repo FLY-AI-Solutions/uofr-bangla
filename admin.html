@@ -69,7 +69,10 @@
               <p class="eyebrow">Mailing directory</p>
               <h2 id="mailingTitle">Send community updates</h2>
             </div>
-            <button class="button secondary" id="importDirectory" type="button">Refresh directory</button>
+            <div class="mailing-header-actions">
+              <button class="button secondary" id="downloadDirectory" type="button">Download CSV</button>
+              <button class="button secondary" id="importDirectory" type="button">Refresh directory</button>
+            </div>
           </div>
 
           <div class="mailing-grid">
@@ -109,7 +112,7 @@
                   <input id="groupName" type="text" maxlength="120" placeholder="Welcome Tea Fall 2026" />
                 </label>
                 <label>
-                  Paste emails from Excel
+                  Paste emails from Excel for this group
                   <textarea id="groupEmails" rows="5" placeholder="Paste one column, rows, or mixed cells with emails"></textarea>
                 </label>
                 <div class="form-row">
@@ -122,7 +125,7 @@
                     <input id="groupDefaultStatus" type="text" maxlength="80" value="Event group" />
                   </label>
                 </div>
-                <button class="button secondary" id="createEmailGroup" type="button">Create group</button>
+                <button class="button secondary" id="createEmailGroup" type="button">Create group from pasted or selected</button>
                 <p class="form-status" id="groupStatus" role="status" aria-live="polite"></p>
               </section>
 
@@ -135,6 +138,14 @@
                 <div class="audience-options" id="mailingAudience"></div>
               </div>
               <label>
+                Direct recipients
+                <textarea
+                  name="directEmails"
+                  rows="4"
+                  placeholder="Optional: paste one or multiple emails from Excel for this send only"
+                ></textarea>
+              </label>
+              <label>
                 Test email
                 <input name="testEmail" type="email" placeholder="Optional test recipient" />
               </label>
@@ -142,6 +153,32 @@
                 Subject
                 <input name="subject" type="text" placeholder="UR BSA: Welcome Tea Update" required />
               </label>
+              <section class="draft-panel" aria-labelledby="draftPanelTitle">
+                <div class="draft-panel-header">
+                  <div>
+                    <p class="eyebrow" id="draftPanelTitle">Drafts</p>
+                    <strong>Save up to 5 reusable messages</strong>
+                  </div>
+                  <button class="button secondary compact-button" id="saveEmailDraft" type="button">Save draft</button>
+                </div>
+                <div class="draft-actions">
+                  <label>
+                    Draft name
+                    <input id="draftName" type="text" maxlength="120" placeholder="Orientation reminder" />
+                  </label>
+                  <label>
+                    Load saved draft
+                    <select id="emailDraftSelect">
+                      <option value="">No saved draft selected</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="selection-tools">
+                  <button class="button secondary compact-button" id="loadEmailDraft" type="button">Load draft</button>
+                  <button class="button danger compact-button" id="deleteEmailDraft" type="button">Delete draft</button>
+                </div>
+                <p class="form-status" id="draftStatus" role="status" aria-live="polite"></p>
+              </section>
               <section class="compose-field" aria-labelledby="mailingMessageLabel">
                 <div class="compose-label-row">
                   <span id="mailingMessageLabel">Message</span>

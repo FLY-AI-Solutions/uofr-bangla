@@ -8,6 +8,7 @@ const postsContainer = document.querySelector("#adminPosts");
 const refreshButton = document.querySelector("#refreshPosts");
 const logoutButton = document.querySelector("#logoutAdmin");
 const importDirectoryButton = document.querySelector("#importDirectory");
+const downloadDirectoryButton = document.querySelector("#downloadDirectory");
 const directorySearch = document.querySelector("#directorySearch");
 const directoryStatusFilter = document.querySelector("#directoryStatusFilter");
 const directoryRoleFilter = document.querySelector("#directoryRoleFilter");
@@ -29,11 +30,18 @@ const mailingGroupSelect = document.querySelector("#mailingGroupSelect");
 const mailingEditor = document.querySelector("#mailingEditor");
 const mailingMessage = document.querySelector("#mailingMessage");
 const composeFormatButtons = document.querySelectorAll("[data-format]");
+const draftName = document.querySelector("#draftName");
+const emailDraftSelect = document.querySelector("#emailDraftSelect");
+const saveEmailDraft = document.querySelector("#saveEmailDraft");
+const loadEmailDraft = document.querySelector("#loadEmailDraft");
+const deleteEmailDraft = document.querySelector("#deleteEmailDraft");
+const draftStatus = document.querySelector("#draftStatus");
 
 let adminToken = window.sessionStorage.getItem("urBanglaAdminToken") || "";
 let currentStatus = "pending";
 let directoryFilters = { statuses: [], roles: [], sources: [] };
 let visibleContacts = [];
+let savedDrafts = [];
 const selectedContacts = new Set();
 
 function escapeHtml(value) {
@@ -74,6 +82,12 @@ function linkifyText(value) {
 
   output += escapeHtml(String(value ?? "").slice(lastIndex));
   return output;
+}
+
+function parseEmails(value) {
+  return [...new Set(String(value || "").match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) || [])].map((email) =>
+    email.toLowerCase(),
+  );
 }
 
 function normalizeUrl(rawUrl) {
@@ -121,8 +135,25 @@ function updateComposeMessage() {
   mailingMessage.value = composePlainText();
 }
 
+function setComposeHtml(value) {
+  if (!mailingEditor) return;
+  mailingEditor.innerHTML = sanitizeComposeHtml(value || "");
+  updateComposeMessage();
+}
+
 function focusEditor() {
   mailingEditor?.focus();
+}
+
+function downloadBlob(blob, filename) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 }
 
 function authHeaders() {
@@ -147,6 +178,19 @@ async function apiFetch(path, options = {}) {
   }
 
   return response.json();
+}
+
+async function apiFetchBlob(path) {
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: authHeaders(),
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(detail || `Request failed with ${response.status}`);
+  }
+
+  return response.blob();
 }
 
 function renderOptions(select, items, placeholder) {
@@ -206,6 +250,31 @@ async function loadEmailGroups() {
   if (!mailingGroupSelect) return;
   const groups = await apiFetch("/api/admin/email-groups");
   renderEmailGroups(groups);
+}
+
+function renderEmailDrafts(drafts) {
+  if (!emailDraftSelect) return;
+
+  if (!drafts.length) {
+    emailDraftSelect.innerHTML = '<option value="">No saved drafts yet</option>';
+    return;
+  }
+
+  emailDraftSelect.innerHTML = `
+    <option value="">Choose a draft</option>
+    ${drafts
+      .map((draft) => `<option value="${escapeHtml(draft.id)}">${escapeHtml(draft.name)} - ${escapeHtml(draft.subject)}</option>`)
+      .join("")}
+  `;
+}
+
+async function loadEmailDrafts() {
+  if (!emailDraftSelect) return;
+  savedDrafts = await apiFetch("/api/admin/email-drafts");
+  renderEmailDrafts(savedDrafts);
+  if (draftStatus) {
+    draftStatus.textContent = `${savedDrafts.length}/5 drafts saved.`;
+  }
 }
 
 function updateSelectedContactCount() {
@@ -381,6 +450,7 @@ tokenForm.addEventListener("submit", async (event) => {
     await loadAdminSummary();
     await loadDirectory();
     await loadEmailGroups();
+    await loadEmailDrafts();
     loginSection.hidden = true;
     dashboard.hidden = false;
   } catch (error) {
@@ -437,10 +507,25 @@ importDirectoryButton?.addEventListener("click", async () => {
     await loadDirectory();
     await loadAdminSummary();
     await loadEmailGroups();
+    await loadEmailDrafts();
   } catch (error) {
     directoryStatus.textContent = `Could not refresh directory: ${error.message}`;
   } finally {
     importDirectoryButton.disabled = false;
+  }
+});
+
+downloadDirectoryButton?.addEventListener("click", async () => {
+  downloadDirectoryButton.disabled = true;
+  directoryStatus.textContent = "Preparing CSV download...";
+  try {
+    const blob = await apiFetchBlob("/api/admin/directory.csv");
+    downloadBlob(blob, "uofr-bangla-directory.csv");
+    directoryStatus.textContent = "Directory CSV downloaded.";
+  } catch (error) {
+    directoryStatus.textContent = `Could not download CSV: ${error.message}`;
+  } finally {
+    downloadDirectoryButton.disabled = false;
   }
 });
 
@@ -469,6 +554,7 @@ directoryContacts?.addEventListener("change", (event) => {
 createEmailGroup?.addEventListener("click", async () => {
   createEmailGroup.disabled = true;
   groupStatus.textContent = "Creating group...";
+  const selectedContactIds = [...selectedContacts].map((id) => Number(id)).filter(Boolean);
   try {
     const result = await apiFetch("/api/admin/email-groups", {
       method: "POST",
@@ -476,11 +562,12 @@ createEmailGroup?.addEventListener("click", async () => {
         name: groupName.value.trim(),
         description: "",
         pastedEmails: groupEmails.value,
+        selectedContactIds,
         defaultRole: groupDefaultRole.value.trim() || "Event",
         defaultStatus: groupDefaultStatus.value.trim() || "Event group",
       }),
     });
-    groupStatus.textContent = `${result.name}: ${result.parsed_count} email${result.parsed_count === 1 ? "" : "s"} parsed, ${result.added_count} new member${result.added_count === 1 ? "" : "s"} added.`;
+    groupStatus.textContent = `${result.name}: ${result.parsed_count} pasted email${result.parsed_count === 1 ? "" : "s"}, ${result.selected_count} selected contact${result.selected_count === 1 ? "" : "s"}, ${result.added_count} new member${result.added_count === 1 ? "" : "s"} added.`;
     groupEmails.value = "";
     await loadDirectory();
     await loadEmailGroups();
@@ -528,11 +615,81 @@ mailingEditor?.addEventListener("paste", (event) => {
   updateComposeMessage();
 });
 
+saveEmailDraft?.addEventListener("click", async () => {
+  const subjectInput = mailingForm?.querySelector('[name="subject"]');
+  const plainMessage = composePlainText();
+  const htmlMessage = sanitizeComposeHtml(mailingEditor?.innerHTML || "");
+  const name = draftName?.value.trim() || subjectInput?.value.trim() || "";
+
+  if (!name || !subjectInput?.value.trim() || !plainMessage) {
+    draftStatus.textContent = "Add a draft name, subject, and message before saving.";
+    return;
+  }
+
+  saveEmailDraft.disabled = true;
+  draftStatus.textContent = "Saving draft...";
+  try {
+    const draft = await apiFetch("/api/admin/email-drafts", {
+      method: "POST",
+      body: JSON.stringify({
+        name,
+        subject: subjectInput.value.trim(),
+        message: plainMessage,
+        htmlMessage,
+      }),
+    });
+    draftStatus.textContent = `Saved "${draft.name}".`;
+    if (draftName) draftName.value = "";
+    await loadEmailDrafts();
+    emailDraftSelect.value = String(draft.id);
+  } catch (error) {
+    draftStatus.textContent = `Could not save draft: ${error.message}`;
+  } finally {
+    saveEmailDraft.disabled = false;
+  }
+});
+
+loadEmailDraft?.addEventListener("click", () => {
+  const draft = savedDrafts.find((item) => String(item.id) === emailDraftSelect.value);
+  if (!draft) {
+    draftStatus.textContent = "Choose a saved draft first.";
+    return;
+  }
+
+  const subjectInput = mailingForm?.querySelector('[name="subject"]');
+  if (subjectInput) subjectInput.value = draft.subject;
+  setComposeHtml(draft.htmlMessage || escapeHtml(draft.message).replace(/\n/g, "<br>"));
+  draftStatus.textContent = `Loaded "${draft.name}".`;
+});
+
+deleteEmailDraft?.addEventListener("click", async () => {
+  const draft = savedDrafts.find((item) => String(item.id) === emailDraftSelect.value);
+  if (!draft) {
+    draftStatus.textContent = "Choose a saved draft to delete.";
+    return;
+  }
+  if (!window.confirm(`Delete draft "${draft.name}"?`)) return;
+
+  deleteEmailDraft.disabled = true;
+  draftStatus.textContent = "Deleting draft...";
+  try {
+    await apiFetch(`/api/admin/email-drafts/${draft.id}`, { method: "DELETE" });
+    draftStatus.textContent = `Deleted "${draft.name}".`;
+    await loadEmailDrafts();
+  } catch (error) {
+    draftStatus.textContent = `Could not delete draft: ${error.message}`;
+  } finally {
+    deleteEmailDraft.disabled = false;
+  }
+});
+
 mailingForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(mailingForm);
   const selectedContactIds = [...selectedContacts].map((id) => Number(id)).filter(Boolean);
   const groupIds = [...mailingGroupSelect.selectedOptions].map((option) => Number(option.value)).filter(Boolean);
+  const directEmails = formData.get("directEmails").trim();
+  const directEmailCount = parseEmails(directEmails).length;
   const plainMessage = composePlainText();
   const htmlMessage = sanitizeComposeHtml(mailingEditor?.innerHTML || "");
 
@@ -547,6 +704,7 @@ mailingForm?.addEventListener("submit", async (event) => {
     subject: formData.get("subject").trim(),
     message: plainMessage,
     htmlMessage,
+    directEmails,
     statuses: formData.getAll("statusAudience"),
     roles: formData.getAll("roleAudience"),
     sources: [],
@@ -556,7 +714,9 @@ mailingForm?.addEventListener("submit", async (event) => {
   };
   const audienceLabel =
     payload.testEmail ||
-    (selectedContactIds.length
+    (directEmailCount
+      ? `${directEmailCount} direct pasted recipient${directEmailCount === 1 ? "" : "s"}`
+      : selectedContactIds.length
       ? `${selectedContactIds.length} selected contact${selectedContactIds.length === 1 ? "" : "s"}`
       : groupIds.length
         ? `${groupIds.length} saved group${groupIds.length === 1 ? "" : "s"}`

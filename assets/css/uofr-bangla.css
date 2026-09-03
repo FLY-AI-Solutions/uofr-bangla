@@ -1030,6 +1030,13 @@ legend {
   margin-bottom: 18px;
 }
 
+.mailing-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 .mailing-header h2 {
   color: var(--ink);
   font-size: clamp(1.9rem, 4vw, 3.4rem);
@@ -1267,6 +1274,32 @@ legend {
   grid-template-columns: 1fr 1fr;
 }
 
+.draft-panel {
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 16px 0;
+}
+
+.draft-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.draft-panel-header strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+}
+
+.draft-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
 .audience-options {
   display: grid;
   gap: 13px;
@@ -1381,9 +1414,14 @@ legend {
   .mailing-header,
   .mailing-grid,
   .directory-tools,
-  .admin-stats {
+  .admin-stats,
+  .draft-actions {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .mailing-header-actions {
+    justify-content: flex-start;
   }
 
   .group-builder .form-row {
@@ -1500,6 +1538,10 @@ legend {
   .compose-toolbar button {
     flex: 1 1 calc(33.333% - 6px);
     padding-inline: 8px;
+  }
+
+  .draft-panel-header {
+    display: grid;
   }
 
   .hero-gallery,
