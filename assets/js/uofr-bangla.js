@@ -14,6 +14,9 @@ const subscribeForm = document.querySelector("#subscribeForm");
 const subscribeStatus = document.querySelector("#subscribeStatus");
 const navToggle = document.querySelector(".nav-toggle");
 const siteNav = document.querySelector("#siteNav");
+const statMembers = document.querySelector('[data-stat="members"]');
+const statCommittee = document.querySelector('[data-stat="committee"]');
+const statEvents = document.querySelector('[data-stat="events"]');
 
 function formatDate(value) {
   const date = new Date(`${value}T12:00:00`);
@@ -111,6 +114,21 @@ async function loadApprovedPosts() {
   const response = await fetch(`${API_BASE}/api/posts?status=approved`);
   if (!response.ok) return [];
   return response.json();
+}
+
+async function loadCommunityStats() {
+  try {
+    const response = await fetch(`${API_BASE}/api/community-stats`);
+    if (!response.ok) throw new Error("Stats unavailable");
+    const stats = await response.json();
+    if (statMembers) statMembers.textContent = stats.members ?? 23;
+    if (statCommittee) statCommittee.textContent = stats.committee ?? 4;
+    if (statEvents) statEvents.textContent = stats.events ?? 2;
+  } catch (error) {
+    if (statMembers) statMembers.textContent = "23";
+    if (statCommittee) statCommittee.textContent = "4";
+    if (statEvents) statEvents.textContent = "2";
+  }
 }
 
 function mergeApprovedPosts(posts) {
@@ -410,6 +428,8 @@ subscribeForm.addEventListener("submit", async (event) => {
 });
 
 async function init() {
+  loadCommunityStats();
+
   try {
     const response = await fetch(DATA_URL);
     const data = await response.json();

@@ -17,6 +17,7 @@ const directoryContacts = document.querySelector("#directoryContacts");
 const selectedContactCount = document.querySelector("#selectedContactCount");
 const selectVisibleContacts = document.querySelector("#selectVisibleContacts");
 const clearSelectedContacts = document.querySelector("#clearSelectedContacts");
+const deleteSelectedContacts = document.querySelector("#deleteSelectedContacts");
 const mailingAudience = document.querySelector("#mailingAudience");
 const mailingForm = document.querySelector("#mailingForm");
 const mailingStatus = document.querySelector("#mailingStatus");
@@ -280,6 +281,7 @@ async function loadEmailDrafts() {
 function updateSelectedContactCount() {
   const count = selectedContacts.size;
   selectedContactCount.textContent = `${count} selected`;
+  if (deleteSelectedContacts) deleteSelectedContacts.disabled = count === 0;
   mailingStatus.textContent = count
     ? `Selected mode active. The next email will go only to ${count} selected contact${count === 1 ? "" : "s"}.`
     : "";
@@ -591,6 +593,32 @@ clearSelectedContacts?.addEventListener("click", () => {
   updateSelectedContactCount();
 });
 
+deleteSelectedContacts?.addEventListener("click", async () => {
+  const contactIds = [...selectedContacts].map(Number).filter((id) => Number.isInteger(id) && id > 0);
+  if (!contactIds.length) return;
+
+  const contactLabel = `${contactIds.length} selected directory contact${contactIds.length === 1 ? "" : "s"}`;
+  const confirmed = window.confirm(
+    `Permanently delete ${contactLabel}?\n\nThis removes their directory profile, saved group membership, access sessions, and verification records. This cannot be undone. A separate post subscription, if one exists, will not be changed.`,
+  );
+  if (!confirmed) return;
+
+  deleteSelectedContacts.disabled = true;
+  directoryStatus.textContent = `Deleting ${contactLabel}...`;
+  try {
+    const result = await apiFetch("/api/admin/directory", {
+      method: "DELETE",
+      body: JSON.stringify({ contactIds }),
+    });
+    selectedContacts.clear();
+    await Promise.all([loadDirectory(), loadAdminSummary(), loadEmailGroups()]);
+    directoryStatus.textContent = `${result.deleted_count} directory contact${result.deleted_count === 1 ? "" : "s"} permanently deleted.`;
+  } catch (error) {
+    directoryStatus.textContent = `Could not delete selected contacts: ${error.message}`;
+    updateSelectedContactCount();
+  }
+});
+
 composeFormatButtons.forEach((button) => {
   button.addEventListener("click", () => {
     focusEditor();
@@ -751,6 +779,8 @@ mailingForm?.addEventListener("submit", async (event) => {
 logoutButton.addEventListener("click", () => {
   adminToken = "";
   window.sessionStorage.removeItem("urBanglaAdminToken");
+  selectedContacts.clear();
+  updateSelectedContactCount();
   dashboard.hidden = true;
   loginSection.hidden = false;
   postsContainer.innerHTML = "";
