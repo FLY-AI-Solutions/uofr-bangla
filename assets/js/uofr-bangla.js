@@ -17,6 +17,46 @@ const siteNav = document.querySelector("#siteNav");
 const statMembers = document.querySelector('[data-stat="members"]');
 const statCommittee = document.querySelector('[data-stat="committee"]');
 const statEvents = document.querySelector('[data-stat="events"]');
+const postEditorDialog = document.querySelector("#postEditorDialog");
+const closePostEditor = document.querySelector("#closePostEditor");
+const postAccessGate = document.querySelector("#postAccessGate");
+const postComposer = document.querySelector("#postComposer");
+const postAccessForm = document.querySelector("#postAccessForm");
+const postVerifyForm = document.querySelector("#postVerifyForm");
+const postAccessStatus = document.querySelector("#postAccessStatus");
+const postVerifyStatus = document.querySelector("#postVerifyStatus");
+const changePostEmail = document.querySelector("#changePostEmail");
+const changePostAccount = document.querySelector("#changePostAccount");
+const postMemberIdentity = document.querySelector("#postMemberIdentity");
+const postExperienceEditor = document.querySelector("#postExperienceEditor");
+const postCharacterCount = document.querySelector("#postCharacterCount");
+const postImage = document.querySelector("#postImage");
+const postImagePreview = document.querySelector("#postImagePreview");
+const removePostImage = document.querySelector("#removePostImage");
+const postAttachment = document.querySelector("#postAttachment");
+const postAttachmentStatus = document.querySelector("#postAttachmentStatus");
+const savePostDraft = document.querySelector("#savePostDraft");
+const clearPostDraft = document.querySelector("#clearPostDraft");
+const postDetailDialog = document.querySelector("#postDetailDialog");
+const postDetailSection = document.querySelector("#postDetailSection");
+const postDetailTitle = document.querySelector("#postDetailTitle");
+const postDetailMeta = document.querySelector("#postDetailMeta");
+const postDetailBody = document.querySelector("#postDetailBody");
+const closePostDetail = document.querySelector("#closePostDetail");
+
+const DIRECTORY_TOKEN_KEY = "urBanglaDirectoryToken";
+const DIRECTORY_TOKEN_EXPIRY_KEY = "urBanglaDirectoryTokenExpiry";
+const POST_DRAFT_KEY = "urBanglaPostDraft";
+const MAX_POST_IMAGE_BYTES = 2 * 1024 * 1024;
+const MAX_POST_PDF_BYTES = 3 * 1024 * 1024;
+const MAX_POST_CHARACTERS = 7500;
+const MAX_POST_HTML_CHARACTERS = 15000;
+let directoryToken = window.localStorage.getItem(DIRECTORY_TOKEN_KEY) || "";
+let pendingPostEmail = "";
+let requestedSection = "";
+let postImagePreviewUrl = "";
+let renderedPostCounter = 0;
+const postDetails = new Map();
 
 function formatDate(value) {
   const date = new Date(`${value}T12:00:00`);
@@ -63,6 +103,51 @@ function linkifyText(value) {
   return output;
 }
 
+function sanitizePostMarkup(value, fallback) {
+  if (!value) return linkifyText(fallback);
+
+  const template = document.createElement("template");
+  template.innerHTML = value;
+  const allowedTags = new Set(["A", "B", "BR", "DIV", "EM", "I", "LI", "OL", "P", "STRONG", "U", "UL"]);
+  const blockedTags = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED"]);
+
+  [...template.content.querySelectorAll("*")].forEach((element) => {
+    if (blockedTags.has(element.tagName)) {
+      element.remove();
+      return;
+    }
+    if (!allowedTags.has(element.tagName)) {
+      element.replaceWith(...element.childNodes);
+      return;
+    }
+
+    const rawHref = element.tagName === "A" ? element.getAttribute("href") || "" : "";
+    [...element.attributes].forEach((attribute) => element.removeAttribute(attribute.name));
+    if (element.tagName === "A") {
+      try {
+        const url = new URL(rawHref, window.location.href);
+        if (!["http:", "https:", "mailto:"].includes(url.protocol)) throw new Error("Unsupported link");
+        element.href = url.href;
+        element.target = "_blank";
+        element.rel = "noopener noreferrer nofollow";
+      } catch (error) {
+        element.replaceWith(...element.childNodes);
+      }
+    }
+  });
+
+  return template.innerHTML || linkifyText(fallback);
+}
+
+function safeImageUrl(rawUrl) {
+  try {
+    const url = new URL(rawUrl);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch (error) {
+    return "";
+  }
+}
+
 function resolveLink(link) {
   return link.url || state.settings[link.settingKey] || "#share";
 }
@@ -87,14 +172,26 @@ function renderLinks(section) {
 
 function renderExperience(item) {
   const name = item.visibility === "anonymous" ? "Anonymous" : item.name || "Community member";
+  const imageUrl = safeImageUrl(item.thumbnailUrl || item.imageUrl || "");
+  const detailKey = item.id ? `post-${item.id}` : `guide-${renderedPostCounter++}`;
+  const title = item.title || "Community experience";
+  const excerptSource = String(item.experience || "").replace(/\s+/g, " ").trim();
+  const excerpt = excerptSource.length > 240 ? `${excerptSource.slice(0, 237)}...` : excerptSource;
+  postDetails.set(detailKey, item);
 
   return `
     <article class="experience-card">
+      ${imageUrl ? `<img class="experience-thumbnail" src="${escapeHtml(imageUrl)}" alt="Photo shared with this experience" loading="lazy" decoding="async" />` : ""}
       <div class="experience-meta">
         <strong>${escapeHtml(name)}</strong>
         <time datetime="${escapeHtml(item.date)}">${formatDate(item.date)}</time>
       </div>
-      <p>${linkifyText(item.experience)}</p>
+      <h4>${escapeHtml(title)}</h4>
+      <p class="experience-excerpt">${escapeHtml(excerpt)}</p>
+      <div class="experience-card-actions">
+        ${item.attachmentName ? `<span class="attachment-badge">PDF attached</span>` : ""}
+        <button class="text-action" type="button" data-post-detail="${escapeHtml(detailKey)}">Read full experience</button>
+      </div>
     </article>
   `;
 }
@@ -137,10 +234,18 @@ function mergeApprovedPosts(posts) {
     if (!section || section.readOnly) return;
 
     section.experiences.unshift({
+      id: post.id,
+      title: post.title,
+      sectionTitle: post.section_title,
       name: post.name || "Anonymous",
       date: post.display_date,
       visibility: post.visibility,
       experience: post.experience,
+      experienceHtml: post.experience_html,
+      imageUrl: post.image_url,
+      thumbnailUrl: post.thumbnail_url,
+      attachmentName: post.attachment_name,
+      attachmentUrl: post.attachment_url,
     });
   });
 }
@@ -187,7 +292,7 @@ function renderExperiences(section) {
     <div class="experiences" data-section-experiences="${escapeHtml(section.id)}">
       ${section.experiences.map(renderExperience).join("")}
     </div>
-    <a class="mini-action" href="#share" data-section-target="${escapeHtml(section.id)}">Add to this section</a>
+    <button class="mini-action" type="button" data-section-target="${escapeHtml(section.id)}">Add to this section</button>
   `;
 }
 
@@ -258,6 +363,8 @@ function initCarousels() {
 }
 
 function renderSections() {
+  postDetails.clear();
+  renderedPostCounter = 0;
   sectionGrid.innerHTML = state.sections
     .map(
       (section, index) => `
@@ -281,10 +388,14 @@ function renderSections() {
     )
     .join("");
 
-  document.querySelectorAll("[data-section-target]").forEach((link) => {
-    link.addEventListener("click", () => {
-      sectionSelect.value = link.dataset.sectionTarget;
+  document.querySelectorAll("[data-section-target]").forEach((button) => {
+    button.addEventListener("click", () => {
+      openPostEditor(button.dataset.sectionTarget);
     });
+  });
+
+  document.querySelectorAll("[data-post-detail]").forEach((button) => {
+    button.addEventListener("click", () => openPostDetail(button.dataset.postDetail));
   });
 
   initCarousels();
@@ -325,74 +436,390 @@ function appendExperience(payload) {
       date: payload.date,
       visibility: payload.visibility,
       experience: payload.experience,
+      experienceHtml: payload.experienceHtml,
+      imageUrl: payload.imageUrl,
     }),
   );
 }
 
-async function sendToGoogleSheets(payload) {
-  const endpoint = state.settings.googleSheetsEndpoint;
+function openPostDetail(detailKey) {
+  const item = postDetails.get(detailKey);
+  if (!item) return;
 
-  if (!endpoint) {
-    return { skipped: true };
-  }
+  const name = item.visibility === "anonymous" ? "Anonymous" : item.name || "Community member";
+  const sectionTitle =
+    item.sectionTitle || state.sections.find((section) => section.id === item.section)?.title || "Community guide";
+  const imageUrl = safeImageUrl(item.imageUrl || "");
+  const attachmentUrl = safeImageUrl(item.attachmentUrl || "");
 
-  await fetch(endpoint, {
-    method: "POST",
-    mode: "no-cors",
-    headers: {
-      "Content-Type": "text/plain;charset=utf-8",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  return { skipped: false };
+  postDetailSection.textContent = sectionTitle;
+  postDetailTitle.textContent = item.title || "Community experience";
+  postDetailMeta.innerHTML = `
+    <strong>${escapeHtml(name)}</strong>
+    <time datetime="${escapeHtml(item.date)}">${formatDate(item.date)}</time>
+  `;
+  postDetailBody.innerHTML = `
+    ${imageUrl ? `<img class="post-detail-image" src="${escapeHtml(imageUrl)}" alt="Photo shared with this experience" />` : ""}
+    <div class="experience-content">${sanitizePostMarkup(item.experienceHtml, item.experience)}</div>
+    ${
+      attachmentUrl
+        ? `<a class="attachment-download" href="${escapeHtml(attachmentUrl)}" download rel="noopener">Download PDF · ${escapeHtml(item.attachmentName || "Attachment.pdf")}</a>`
+        : ""
+    }
+  `;
+  postDetailDialog.showModal();
 }
 
-async function submitToBackend(payload) {
-  const response = await fetch(`${API_BASE}/api/posts`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
-
-  if (!response.ok) {
-    throw new Error(await readApiError(response));
-  }
-
-  return response.json();
-}
+closePostDetail.addEventListener("click", () => postDetailDialog.close());
+postDetailDialog.addEventListener("click", (event) => {
+  if (event.target === postDetailDialog) postDetailDialog.close();
+});
 
 async function readApiError(response) {
   try {
     const data = await response.json();
-    return data.detail || `Request failed with ${response.status}`;
+    if (typeof data.detail === "string") return data.detail;
+    if (data.detail) return JSON.stringify(data.detail);
+    return `Request failed with ${response.status}`;
   } catch (error) {
     return `Request failed with ${response.status}`;
   }
 }
 
+function clearDirectoryAccess() {
+  directoryToken = "";
+  window.localStorage.removeItem(DIRECTORY_TOKEN_KEY);
+  window.localStorage.removeItem(DIRECTORY_TOKEN_EXPIRY_KEY);
+}
+
+function showPostAccessGate(message = "") {
+  postAccessGate.hidden = false;
+  postComposer.hidden = true;
+  postAccessStatus.textContent = message;
+}
+
+function restorePostDraft() {
+  try {
+    const draft = JSON.parse(window.sessionStorage.getItem(POST_DRAFT_KEY) || "null");
+    if (!draft) return;
+    if (draft.section && [...sectionSelect.options].some((option) => option.value === draft.section)) {
+      sectionSelect.value = draft.section;
+    }
+    form.elements.title.value = draft.title || "";
+    form.elements.name.value = draft.name || "";
+    form.elements.date.value = draft.date || "";
+    const visibility = form.querySelector(`[name="visibility"][value="${draft.visibility}"]`);
+    if (visibility) visibility.checked = true;
+    postExperienceEditor.innerHTML = draft.experienceHtml || "";
+    updatePostCharacterCount();
+    formStatus.textContent = "Session draft restored. Re-select a photo before submitting.";
+  } catch (error) {
+    window.sessionStorage.removeItem(POST_DRAFT_KEY);
+  }
+}
+
+function updatePostCharacterCount() {
+  const count = postExperienceEditor.innerText.length;
+  postCharacterCount.textContent = `${count.toLocaleString()} / ${MAX_POST_CHARACTERS.toLocaleString()}`;
+  postCharacterCount.classList.toggle("is-over-limit", count > MAX_POST_CHARACTERS);
+}
+
+function showPostComposer(member) {
+  postAccessGate.hidden = true;
+  postComposer.hidden = false;
+  postMemberIdentity.textContent = `Verified as ${member.name || member.email}`;
+  if (!form.elements.name.value && member.name) form.elements.name.value = member.name;
+  restorePostDraft();
+  if (requestedSection && [...sectionSelect.options].some((option) => option.value === requestedSection)) {
+    sectionSelect.value = requestedSection;
+  }
+  if (!form.elements.date.value) form.elements.date.valueAsDate = new Date();
+  postExperienceEditor.focus();
+}
+
+async function verifyPostSession() {
+  if (!directoryToken) return null;
+  const expiresAt = window.localStorage.getItem(DIRECTORY_TOKEN_EXPIRY_KEY);
+  if (expiresAt && Date.parse(expiresAt) <= Date.now()) {
+    clearDirectoryAccess();
+    return null;
+  }
+
+  const response = await fetch(`${API_BASE}/api/directory/session`, {
+    headers: { Authorization: `Bearer ${directoryToken}` },
+  });
+  if (!response.ok) {
+    clearDirectoryAccess();
+    return null;
+  }
+  return response.json();
+}
+
+async function openPostEditor(section = "") {
+  requestedSection = section;
+  if (!postEditorDialog.open) postEditorDialog.showModal();
+  formStatus.textContent = "";
+  postAccessStatus.textContent = "Checking member access...";
+
+  try {
+    const member = await verifyPostSession();
+    if (member) {
+      showPostComposer(member);
+    } else {
+      showPostAccessGate("Enter your registered email to continue.");
+    }
+  } catch (error) {
+    showPostAccessGate("Member access could not be checked. Please try again.");
+  }
+}
+
+function removeSelectedPostImage() {
+  if (postImagePreviewUrl) window.URL.revokeObjectURL(postImagePreviewUrl);
+  postImagePreviewUrl = "";
+  postImage.value = "";
+  postImagePreview.hidden = true;
+  postImagePreview.querySelector("img").removeAttribute("src");
+}
+
+function validatePostImage(file) {
+  if (!file) return "";
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    return "Choose a JPEG, PNG, or WebP image.";
+  }
+  if (file.size > MAX_POST_IMAGE_BYTES) return "The image must be 2 MB or smaller.";
+  return "";
+}
+
+function validatePostPdf(file) {
+  if (!file) return "";
+  if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
+    return "Choose a PDF attachment.";
+  }
+  if (file.size > MAX_POST_PDF_BYTES) return "The PDF attachment must be 3 MB or smaller.";
+  return "";
+}
+
+function saveCurrentPostDraft() {
+  const formData = new FormData(form);
+  const draft = {
+    section: formData.get("section"),
+    title: formData.get("title").trim(),
+    name: formData.get("name").trim(),
+    date: formData.get("date"),
+    visibility: formData.get("visibility"),
+    experienceHtml: postExperienceEditor.innerHTML,
+  };
+  window.sessionStorage.setItem(POST_DRAFT_KEY, JSON.stringify(draft));
+  formStatus.textContent = "Draft saved for this browser tab. Photos and PDFs are not stored in drafts.";
+}
+
+postAccessForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  pendingPostEmail = new FormData(postAccessForm).get("email").trim().toLowerCase();
+  postAccessStatus.textContent = "Sending access code...";
+
+  try {
+    const response = await fetch(`${API_BASE}/api/directory/access/request-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: pendingPostEmail }),
+    });
+    if (!response.ok) throw new Error(await readApiError(response));
+    postAccessStatus.textContent = "Access code sent. Check your email.";
+    postAccessForm.hidden = true;
+    postVerifyForm.hidden = false;
+    postVerifyForm.elements.code.focus();
+  } catch (error) {
+    postAccessStatus.textContent = `Could not send access code: ${error.message}.`;
+  }
+});
+
+postVerifyForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  postVerifyStatus.textContent = "Verifying...";
+  const code = new FormData(postVerifyForm).get("code").trim();
+
+  try {
+    const response = await fetch(`${API_BASE}/api/directory/access/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: pendingPostEmail, code }),
+    });
+    if (!response.ok) throw new Error(await readApiError(response));
+    const result = await response.json();
+    directoryToken = result.token;
+    window.localStorage.setItem(DIRECTORY_TOKEN_KEY, result.token);
+    window.localStorage.setItem(DIRECTORY_TOKEN_EXPIRY_KEY, result.expires_at || "");
+    postVerifyForm.reset();
+    showPostComposer({ name: "", email: pendingPostEmail });
+  } catch (error) {
+    postVerifyStatus.textContent = `Could not verify access: ${error.message}.`;
+  }
+});
+
+changePostEmail.addEventListener("click", () => {
+  postVerifyForm.hidden = true;
+  postAccessForm.hidden = false;
+  postVerifyStatus.textContent = "";
+});
+
+changePostAccount.addEventListener("click", () => {
+  clearDirectoryAccess();
+  postAccessForm.hidden = false;
+  postVerifyForm.hidden = true;
+  showPostAccessGate("Enter another registered email.");
+});
+
+document.querySelectorAll("[data-open-post-editor]").forEach((button) => {
+  button.addEventListener("click", () => openPostEditor());
+});
+
+closePostEditor.addEventListener("click", () => postEditorDialog.close());
+postEditorDialog.addEventListener("click", (event) => {
+  if (event.target === postEditorDialog) postEditorDialog.close();
+});
+
+document.querySelectorAll("[data-post-format]").forEach((button) => {
+  button.addEventListener("click", () => {
+    postExperienceEditor.focus();
+    const command = button.dataset.postFormat;
+    if (command === "createLink") {
+      const rawUrl = window.prompt("Paste a website link")?.trim() || "";
+      if (!rawUrl) return;
+      try {
+        const url = new URL(rawUrl.startsWith("http") ? rawUrl : `https://${rawUrl}`);
+        document.execCommand("createLink", false, url.href);
+        updatePostCharacterCount();
+      } catch (error) {
+        formStatus.textContent = "Enter a valid website link.";
+      }
+      return;
+    }
+    document.execCommand(command, false, null);
+    updatePostCharacterCount();
+  });
+});
+
+postExperienceEditor.addEventListener("input", updatePostCharacterCount);
+
+postImage.addEventListener("change", () => {
+  const file = postImage.files[0];
+  const imageError = validatePostImage(file);
+  if (imageError) {
+    removeSelectedPostImage();
+    formStatus.textContent = imageError;
+    return;
+  }
+  if (postImagePreviewUrl) window.URL.revokeObjectURL(postImagePreviewUrl);
+  postImagePreviewUrl = window.URL.createObjectURL(file);
+  postImagePreview.querySelector("img").src = postImagePreviewUrl;
+  postImagePreview.hidden = false;
+  formStatus.textContent = "";
+});
+
+postAttachment.addEventListener("change", () => {
+  const file = postAttachment.files[0];
+  const attachmentError = validatePostPdf(file);
+  if (attachmentError) {
+    postAttachment.value = "";
+    postAttachmentStatus.hidden = true;
+    formStatus.textContent = attachmentError;
+    return;
+  }
+  postAttachmentStatus.textContent = file ? `${file.name} · ${(file.size / (1024 * 1024)).toFixed(2)} MB` : "";
+  postAttachmentStatus.hidden = !file;
+  formStatus.textContent = "";
+});
+
+removePostImage.addEventListener("click", removeSelectedPostImage);
+savePostDraft.addEventListener("click", () => {
+  try {
+    saveCurrentPostDraft();
+  } catch (error) {
+    formStatus.textContent = "This browser could not save the draft.";
+  }
+});
+clearPostDraft.addEventListener("click", () => {
+  window.sessionStorage.removeItem(POST_DRAFT_KEY);
+  form.reset();
+  postExperienceEditor.innerHTML = "";
+  updatePostCharacterCount();
+  removeSelectedPostImage();
+  postAttachmentStatus.hidden = true;
+  form.elements.date.valueAsDate = new Date();
+  if (requestedSection) sectionSelect.value = requestedSection;
+  formStatus.textContent = "Draft cleared.";
+});
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const formData = new FormData(form);
-  const payload = {
-    section: formData.get("section"),
-    sectionTitle: state.sections.find((section) => section.id === formData.get("section"))?.title || "",
-    name: formData.get("visibility") === "anonymous" ? "" : formData.get("name").trim(),
-    date: formData.get("date"),
-    visibility: formData.get("visibility"),
-    experience: formData.get("experience").trim(),
-    submittedAt: new Date().toISOString(),
-  };
+  const plainExperience = postExperienceEditor.innerText.trim();
+  if (plainExperience.length < 20) {
+    formStatus.textContent = "Please write at least 20 characters before submitting.";
+    postExperienceEditor.focus();
+    return;
+  }
+  if (plainExperience.length > MAX_POST_CHARACTERS || postExperienceEditor.innerHTML.length > MAX_POST_HTML_CHARACTERS) {
+    formStatus.textContent = "The post is too long. Keep it below 7,500 characters.";
+    return;
+  }
+
+  const formValues = new FormData(form);
+  const visibility = formValues.get("visibility");
+  const displayName = formValues.get("name").trim();
+  if (visibility === "credible" && !displayName) {
+    formStatus.textContent = "Add a display name for a credible post.";
+    form.elements.name.focus();
+    return;
+  }
+  const imageFile = postImage.files[0];
+  const imageError = validatePostImage(imageFile);
+  if (imageError) {
+    formStatus.textContent = imageError;
+    return;
+  }
+  const attachmentFile = postAttachment.files[0];
+  const attachmentError = validatePostPdf(attachmentFile);
+  if (attachmentError) {
+    formStatus.textContent = attachmentError;
+    return;
+  }
+
+  const section = formValues.get("section");
+  const submission = new FormData();
+  submission.append("section", section);
+  submission.append("title", formValues.get("title").trim());
+  submission.append("name", visibility === "anonymous" ? "" : displayName);
+  submission.append("date", formValues.get("date"));
+  submission.append("visibility", visibility);
+  submission.append("experience", plainExperience);
+  submission.append("experienceHtml", postExperienceEditor.innerHTML);
+  if (imageFile) submission.append("image", imageFile);
+  if (attachmentFile) submission.append("attachment", attachmentFile);
 
   formStatus.textContent = "Sending...";
 
   try {
-    await submitToBackend(payload);
-    await sendToGoogleSheets(payload);
+    const response = await fetch(`${API_BASE}/api/posts`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${directoryToken}` },
+      body: submission,
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        clearDirectoryAccess();
+        showPostAccessGate("Your member access expired. Verify your email again.");
+      }
+      throw new Error(await readApiError(response));
+    }
+
     form.reset();
+    postExperienceEditor.innerHTML = "";
+    updatePostCharacterCount();
+    removeSelectedPostImage();
+    postAttachmentStatus.hidden = true;
+    window.sessionStorage.removeItem(POST_DRAFT_KEY);
     form.elements.date.valueAsDate = new Date();
     formStatus.textContent = "Submitted for moderation. It will appear after admin approval.";
   } catch (error) {

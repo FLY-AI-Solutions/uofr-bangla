@@ -401,16 +401,22 @@ function renderPosts(posts) {
     .map((post) => {
       const approveLabel = post.status === "rejected" ? "Restore" : "Approve";
       const rejectLabel = post.status === "approved" ? "Move to rejected" : "Reject";
+      const richExperience = sanitizeComposeHtml(post.experience_html || "") || linkifyText(post.experience);
+      const imageUrl = normalizeUrl(post.image_url || "");
 
       return `
-        <article class="admin-post" data-post-id="${post.id}">
+        <article class="admin-post" data-post-id="${post.id}" data-post-title="${escapeHtml(post.title || "Community experience")}">
           <div class="admin-post-meta">
             <span>${escapeHtml(post.section_title)}</span>
             <time>${escapeHtml(post.display_date)}</time>
           </div>
-          <h2>${escapeHtml(post.visibility === "anonymous" ? "Anonymous" : post.name || "Community member")}</h2>
-          <p>${linkifyText(post.experience)}</p>
+          <h2>${escapeHtml(post.title || "Community experience")}</h2>
+          <p class="admin-post-author">By ${escapeHtml(post.visibility === "anonymous" ? "Anonymous" : post.name || "Community member")}</p>
+          ${post.submitter_email ? `<small class="post-submitter">Registered account: ${escapeHtml(post.submitter_email)}</small>` : ""}
+          ${imageUrl ? `<img class="experience-image" src="${escapeHtml(imageUrl)}" alt="Image submitted with this post" />` : ""}
+          <div class="experience-content">${richExperience}</div>
           <div class="admin-post-actions">
+            ${post.attachment_name ? `<button class="button secondary" type="button" data-action="attachment">Download PDF · ${escapeHtml(post.attachment_name)}</button>` : ""}
             ${post.status === "approved" ? "" : `<button class="button primary" type="button" data-action="approve">${approveLabel}</button>`}
             ${post.status === "rejected" ? "" : `<button class="button danger" type="button" data-action="reject">${rejectLabel}</button>`}
             <button class="button ghost-danger" type="button" data-action="delete">Remove</button>
@@ -442,6 +448,12 @@ async function deletePost(postId) {
   await loadPosts();
 }
 
+async function downloadPostAttachment(postId, title) {
+  const blob = await apiFetchBlob(`/api/admin/posts/${postId}/attachment`);
+  const filename = `${String(title || "post-attachment").replace(/[^a-z0-9]+/gi, "-").replace(/^-|-$/g, "").toLowerCase() || "post-attachment"}.pdf`;
+  downloadBlob(blob, filename);
+}
+
 tokenForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   adminToken = new FormData(tokenForm).get("token").trim();
@@ -467,6 +479,11 @@ postsContainer.addEventListener("click", async (event) => {
   const post = button.closest("[data-post-id]");
   button.disabled = true;
   try {
+    if (button.dataset.action === "attachment") {
+      await downloadPostAttachment(post.dataset.postId, post.dataset.postTitle);
+      button.disabled = false;
+      return;
+    }
     if (button.dataset.action === "delete") {
       await deletePost(post.dataset.postId);
       return;

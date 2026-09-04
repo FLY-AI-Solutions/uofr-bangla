@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/uofr-bangla.css?v=20260904-6" />
+    <link rel="stylesheet" href="assets/css/uofr-bangla.css?v=20260904-13" />
   </head>
   <body>
     <header class="topbar">
@@ -54,7 +54,7 @@
             so the next person arrives with fewer unknowns.
           </p>
           <div class="hero-actions">
-            <a class="button primary" href="#share">Post an experience</a>
+            <button class="button primary" type="button" data-open-post-editor>Post an experience</button>
             <a class="button secondary" href="#subscribe">Free updates</a>
             <a class="button secondary" href="register.html">Join directory</a>
             <a class="button secondary" href="directory.html">View directory</a>
@@ -115,57 +115,18 @@
       <section class="share-panel" id="share" aria-labelledby="share-title">
         <div>
           <p class="eyebrow">Add your note</p>
-          <h2 id="share-title">Post anonymously or credibly.</h2>
+          <h2 id="share-title">Share something worth passing forward.</h2>
           <p>
-            Pick a section, write what you wish someone had told you, and choose whether your name appears. Submissions
-            are also shown locally after sending.
+            Registered members can add formatted advice, an optional photo, and one PDF attachment. Every submission is
+            reviewed before it appears publicly.
           </p>
         </div>
-
-        <form class="experience-form" id="experienceForm">
-          <label>
-            Section
-            <select name="section" id="sectionSelect" required></select>
-          </label>
-
-          <div class="form-row">
-            <label>
-              Name
-              <input name="name" type="text" maxlength="80" placeholder="Your name or organization" />
-            </label>
-            <label>
-              Date
-              <input name="date" type="date" required />
-            </label>
-          </div>
-
-          <fieldset>
-            <legend>Posting style</legend>
-            <label class="radio-card">
-              <input type="radio" name="visibility" value="anonymous" checked />
-              <span>Anonymous</span>
-            </label>
-            <label class="radio-card">
-              <input type="radio" name="visibility" value="credible" />
-              <span>Credible</span>
-            </label>
-          </fieldset>
-
-          <label>
-            Experience
-            <textarea
-              name="experience"
-              rows="6"
-              minlength="20"
-              maxlength="1200"
-              placeholder="Share specific, kind, useful advice..."
-              required
-            ></textarea>
-          </label>
-
-          <button class="button primary" type="submit">Submit experience</button>
-          <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
-        </form>
+        <div class="share-entry">
+          <strong>Member publishing</strong>
+          <span>Rich text, lists, links, one image up to 2 MB, and one PDF up to 3 MB</span>
+          <button class="button primary" type="button" data-open-post-editor>Open post editor</button>
+          <a href="register.html">Not registered yet? Join the directory</a>
+        </div>
       </section>
 
       <section class="subscribe-panel" id="subscribe" aria-labelledby="subscribe-title">
@@ -192,6 +153,172 @@
       </section>
     </main>
 
+    <dialog class="post-editor-dialog" id="postEditorDialog" aria-labelledby="postEditorTitle">
+      <div class="post-editor-shell">
+        <header class="post-editor-header">
+          <div>
+            <p class="eyebrow">Member post</p>
+            <h2 id="postEditorTitle">Share an experience</h2>
+          </div>
+          <button class="icon-button" id="closePostEditor" type="button" aria-label="Close editor" title="Close editor">×</button>
+        </header>
+
+        <section class="post-access-gate" id="postAccessGate">
+          <h3>Verify your registered email</h3>
+          <p>Posting is available to members of the UofR Bangla directory.</p>
+          <form class="experience-form" id="postAccessForm">
+            <label>
+              Registered email
+              <input name="email" type="email" autocomplete="email" maxlength="180" required />
+            </label>
+            <button class="button primary" type="submit">Send access code</button>
+            <p class="form-status" id="postAccessStatus" role="status" aria-live="polite"></p>
+          </form>
+          <form class="experience-form" id="postVerifyForm" hidden>
+            <label>
+              Verification code
+              <input name="code" inputmode="numeric" autocomplete="one-time-code" minlength="4" maxlength="12" required />
+            </label>
+            <div class="editor-actions">
+              <button class="button primary" type="submit">Verify and continue</button>
+              <button class="button secondary" id="changePostEmail" type="button">Change email</button>
+            </div>
+            <p class="form-status" id="postVerifyStatus" role="status" aria-live="polite"></p>
+          </form>
+          <a class="text-action" href="register.html">Register for the community directory</a>
+        </section>
+
+        <section class="post-composer" id="postComposer" hidden>
+          <div class="verified-member-bar">
+            <span id="postMemberIdentity">Verified member</span>
+            <button class="text-action" id="changePostAccount" type="button">Use another account</button>
+          </div>
+
+          <form class="experience-form" id="experienceForm">
+            <label>
+              Post title
+              <input name="title" type="text" minlength="5" maxlength="140" placeholder="A clear summary of your experience" required />
+            </label>
+
+            <label>
+              Section
+              <select name="section" id="sectionSelect" required></select>
+            </label>
+
+            <div class="form-row">
+              <label>
+                Display name
+                <input name="name" type="text" maxlength="120" placeholder="Shown only for credible posts" />
+              </label>
+              <label>
+                Date
+                <input name="date" type="date" required />
+              </label>
+            </div>
+
+            <fieldset>
+              <legend>Posting style</legend>
+              <label class="radio-card">
+                <input type="radio" name="visibility" value="anonymous" checked />
+                <span>Anonymous</span>
+              </label>
+              <label class="radio-card">
+                <input type="radio" name="visibility" value="credible" />
+                <span>Credible</span>
+              </label>
+            </fieldset>
+
+            <label>
+              <span class="compose-label-row">
+                <span>Experience</span>
+                <small id="postCharacterCount">0 / 7,500</small>
+              </span>
+              <span class="post-rich-editor">
+                <span class="compose-toolbar" aria-label="Text formatting">
+                  <button type="button" data-post-format="bold" aria-label="Bold" title="Bold"><strong>B</strong></button>
+                  <button type="button" data-post-format="italic" aria-label="Italic" title="Italic"><em>I</em></button>
+                  <button type="button" data-post-format="insertUnorderedList" aria-label="Bulleted list" title="Bulleted list">• List</button>
+                  <button type="button" data-post-format="insertOrderedList" aria-label="Numbered list" title="Numbered list">1. List</button>
+                  <button type="button" data-post-format="createLink" aria-label="Add link" title="Add link">Link</button>
+                </span>
+                <span
+                  class="post-compose-box"
+                  id="postExperienceEditor"
+                  contenteditable="true"
+                  role="textbox"
+                  aria-multiline="true"
+                  aria-label="Experience"
+                  data-placeholder="Share specific, kind, useful advice..."
+                ></span>
+              </span>
+            </label>
+
+            <label>
+              Photo <small>Optional · JPEG, PNG, or WebP · maximum 2 MB</small>
+              <input name="image" id="postImage" type="file" accept="image/jpeg,image/png,image/webp" />
+            </label>
+            <div class="post-image-preview" id="postImagePreview" hidden>
+              <img alt="Selected post preview" />
+              <button class="button secondary compact-button" id="removePostImage" type="button">Remove photo</button>
+            </div>
+
+            <label>
+              PDF attachment <small>Optional · one PDF · maximum 3 MB</small>
+              <input name="attachment" id="postAttachment" type="file" accept="application/pdf,.pdf" />
+            </label>
+            <p class="attachment-selection" id="postAttachmentStatus" hidden></p>
+
+            <div class="editor-actions">
+              <button class="button primary" type="submit">Submit for review</button>
+              <button class="button secondary" id="savePostDraft" type="button">Save draft</button>
+              <button class="button secondary" id="clearPostDraft" type="button">Clear draft</button>
+            </div>
+            <p class="draft-note">Draft text is stored only in this browser tab and is cleared when the tab closes.</p>
+            <p class="form-status" id="formStatus" role="status" aria-live="polite"></p>
+          </form>
+        </section>
+      </div>
+    </dialog>
+
+    <dialog class="post-detail-dialog" id="postDetailDialog" aria-labelledby="postDetailTitle">
+      <article>
+        <header class="post-detail-header">
+          <div>
+            <p class="eyebrow" id="postDetailSection"></p>
+            <h2 id="postDetailTitle">Community experience</h2>
+            <div class="experience-meta" id="postDetailMeta"></div>
+          </div>
+          <button class="icon-button" id="closePostDetail" type="button" aria-label="Close full post" title="Close">×</button>
+        </header>
+        <div class="post-detail-body" id="postDetailBody"></div>
+      </article>
+    </dialog>
+
+    <aside class="storage-notice" id="storageNotice" aria-label="Cookie and browser storage notice" hidden>
+      <p><strong>Cookies & storage</strong> We use essential browser storage for verified access, session drafts, and preferences. We do not use advertising cookies.</p>
+      <div>
+        <button class="button secondary compact-button" id="openStorageDetails" type="button">Details</button>
+        <button class="button primary compact-button" id="acceptStorageNotice" type="button">Got it</button>
+      </div>
+    </aside>
+
+    <dialog class="storage-dialog" id="storageDialog" aria-labelledby="storageTitle">
+      <div>
+        <header class="post-editor-header">
+          <h2 id="storageTitle">Cookies & browser storage</h2>
+          <button class="icon-button" id="closeStorageDetails" type="button" aria-label="Close storage details" title="Close">×</button>
+        </header>
+        <p>This website does not use advertising or analytics cookies.</p>
+        <ul>
+          <li><strong>Local storage:</strong> remembers verified directory access and your notice preference on this device.</li>
+          <li><strong>Session storage:</strong> keeps post drafts in the current tab and admin access in the admin panel.</li>
+          <li><strong>Submitted content:</strong> posts and image or PDF attachment locations are stored in the community database after submission and remain pending until moderation.</li>
+          <li><strong>External services:</strong> Google Fonts may receive standard connection data when fonts load. External links open only when selected.</li>
+        </ul>
+        <button class="button primary" id="acceptStorageDetails" type="button">Acknowledge</button>
+      </div>
+    </dialog>
+
     <footer class="footer">
       <p>Built for UofR Bangla and the Bangladesh Students Association community.</p>
       <a class="sponsor" href="https://flyai.online" target="_blank" rel="noopener">
@@ -202,9 +329,8 @@
       </a>
     </footer>
 
-    <script>
-      window.UR_BANGLA_API_BASE = window.UR_BANGLA_API_BASE || "https://jerin-api.flyai.online/x006";
-    </script>
-    <script src="assets/js/uofr-bangla.js?v=20260904-2" defer></script>
+    <script src="assets/js/api-config.js?v=20260904-1"></script>
+    <script src="assets/js/privacy.js?v=20260904-2" defer></script>
+    <script src="assets/js/uofr-bangla.js?v=20260904-7" defer></script>
   </body>
 </html>
