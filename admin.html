@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="assets/css/uofr-bangla.css?v=20260829-1" />
+    <link rel="stylesheet" href="assets/css/uofr-bangla.css?v=20260904-1" />
   </head>
   <body class="admin-page">
     <header class="topbar">
@@ -99,6 +99,7 @@
                 <strong id="selectedContactCount">0 selected</strong>
                 <button class="button secondary compact-button" id="selectVisibleContacts" type="button">Select visible</button>
                 <button class="button secondary compact-button" id="clearSelectedContacts" type="button">Clear</button>
+                <button class="button danger compact-button" id="deleteSelectedContacts" type="button" disabled>Delete selected</button>
               </div>
               <p class="form-status" id="directoryStatus" role="status" aria-live="polite"></p>
               <div class="directory-list" id="directoryContacts"></div>
@@ -216,6 +217,6 @@
     <script>
       window.UR_BANGLA_API_BASE = window.UR_BANGLA_API_BASE || "https://jerin-api.flyai.online/x006";
     </script>
-    <script src="assets/js/admin.js?v=20260829-1" defer></script>
+    <script src="assets/js/admin.js?v=20260904-1" defer></script>
   </body>
 </html>
