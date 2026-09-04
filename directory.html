@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UofR Bangla | Member Directory</title>
+    <meta name="description" content="Verified UofR Bangla member directory for registered community members." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="assets/css/uofr-bangla.css?v=20260904-9" />
+  </head>
+  <body class="directory-page">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="UofR Bangla home">
+        <span class="brand-mark">
+          <strong>UR</strong>
+          <em>বাংলা</em>
+        </span>
+        <span>
+          <strong>Member Directory</strong>
+          <small>Verified community access</small>
+        </span>
+      </a>
+      <nav class="nav simple-nav" aria-label="Directory navigation">
+        <a href="index.html">Public site</a>
+        <a href="register.html">Register</a>
+      </nav>
+    </header>
+
+    <main class="directory-shell">
+      <section class="directory-preview" id="directoryPreview" aria-labelledby="directoryPreviewTitle">
+        <div class="directory-preview-copy">
+          <p class="eyebrow">Private community directory</p>
+          <h1 id="directoryPreviewTitle">Find registered UofR Bangla members.</h1>
+          <p>
+            The full directory is visible to verified members. Register your profile first, or use your registered email
+            below to receive an access code.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="register.html">Register to join</a>
+            <a class="button secondary" href="#directoryAccess">Already registered</a>
+          </div>
+        </div>
+        <div class="preview-directory-grid" aria-hidden="true">
+          <article class="member-card is-blurred">
+            <div>
+              <strong>Bangla Member</strong>
+              <a>member@rochester.edu</a>
+            </div>
+            <div class="directory-badges">
+              <span>Grad</span>
+              <span>Computer Science</span>
+            </div>
+            <p>Research lab, University of Rochester</p>
+          </article>
+          <article class="member-card is-blurred">
+            <div>
+              <strong>Community Alum</strong>
+              <a>alumni@example.com</a>
+            </div>
+            <div class="directory-badges">
+              <span>Alumni</span>
+              <span>Data Science</span>
+            </div>
+            <p>Current affiliation available after verification</p>
+          </article>
+          <article class="member-card is-blurred">
+            <div>
+              <strong>Faculty Contact</strong>
+              <a>faculty@rochester.edu</a>
+            </div>
+            <div class="directory-badges">
+              <span>Faculty</span>
+              <span>Medicine</span>
+            </div>
+            <p>Department and profile links unlock after access</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="directory-access-card" id="directoryAccess">
+        <div class="directory-access-heading">
+          <div>
+            <p class="eyebrow">Member access</p>
+            <h2>Enter your registered email</h2>
+          </div>
+          <p>We will email you a one-time access code. Verified access stays signed in on this device.</p>
+        </div>
+
+        <form class="experience-form" id="directoryAccessForm">
+          <label>
+            Registered email
+            <input name="email" type="email" maxlength="180" placeholder="you@example.com" required />
+          </label>
+          <button class="button primary" type="submit">Send access code</button>
+          <p class="form-status" id="accessStatus" role="status" aria-live="polite"></p>
+        </form>
+
+        <form class="experience-form otp-form" id="directoryVerifyForm" hidden>
+          <label>
+            Access code
+            <input name="code" type="text" inputmode="numeric" maxlength="12" autocomplete="one-time-code" required />
+          </label>
+          <button class="button primary" type="submit">Open directory</button>
+          <button class="button secondary" id="changeAccessEmail" type="button">Use another email</button>
+          <p class="form-status" id="verifyStatus" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="member-directory" id="memberDirectory" hidden>
+        <div class="member-directory-header">
+          <div>
+            <p class="eyebrow">Community directory</p>
+            <h2>Members</h2>
+            <p class="member-directory-summary" id="memberStatus" role="status" aria-live="polite"></p>
+          </div>
+          <div class="member-directory-actions">
+            <label class="directory-search-field">
+              Search
+              <input id="directorySearch" type="search" placeholder="Name, role, or department" autocomplete="off" />
+            </label>
+            <label>
+              Index by
+              <select id="directorySort">
+                <option value="name">Name</option>
+                <option value="department">Department</option>
+              </select>
+            </label>
+            <button class="button secondary directory-refresh" id="refreshDirectoryMembers" type="button" title="Refresh member list" aria-label="Refresh member list">Refresh</button>
+            <button class="button secondary" id="closeDirectory" type="button">Sign out</button>
+          </div>
+        </div>
+        <nav class="directory-index" id="directoryIndex" aria-label="Directory index"></nav>
+        <div class="member-list" id="memberGrid"></div>
+      </section>
+    </main>
+
+    <script>
+      window.UR_BANGLA_API_BASE = window.UR_BANGLA_API_BASE || "https://jerin-api.flyai.online/x006";
+    </script>
+    <script src="assets/js/directory.js?v=20260904-9" defer></script>
+  </body>
+</html>
